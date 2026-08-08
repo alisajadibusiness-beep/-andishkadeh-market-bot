@@ -11,6 +11,7 @@ from telegram.ext import (
 )
 
 from menus import main_menu, trade_menu
+from management import management_basics_menu
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -457,12 +458,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # -------------------------
 
     if query.data == "management":
-        await query.edit_message_text(
-            "📚 آموزش مدیریت\n\n"
-            "موضوع موردنظر خود را انتخاب کنید:",
-            reply_markup=management_menu()
-        )
-        return
+    await query.edit_message_text(
+        "📚 آموزش مدیریت\n\n"
+        "موضوع موردنظر خود را انتخاب کنید:",
+        reply_markup=management_basics_menu()
+    )
+    return
 
     # -------------------------
     # بازاریابی
