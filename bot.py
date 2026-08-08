@@ -1,7 +1,15 @@
 import os
 from flask import Flask
 from threading import Thread
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from from telegram import Update
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+)
+
+from menus import main_menu, trade_menu
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -20,7 +28,7 @@ def home():
     return "Andishkadeh Market Bot is running."
 
 
-def main_menu():
+def 
     keyboard = [
         [
             InlineKeyboardButton("📚 آموزش مدیریت", callback_data="management"),
@@ -64,133 +72,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=main_menu()
     )
 
-
+if query.data == "trade":
+    await query.edit_message_text(
+        "🌍 تجارت بین‌الملل\n\n"
+        "موضوع موردنظر خود را انتخاب کنید:",
+        reply_markup=trade_menu()
+    )
+    return
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "راهنمای ربات\n\n"
         "برای مشاهده منوی اصلی، /start را ارسال کنید."
     )
 
-
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == "trade":
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "📘 آموزش تجارت بین‌الملل",
-                    callback_data="trade_learning"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🚢 واردات و صادرات",
-                    callback_data="trade_import_export"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📑 اسناد و قراردادهای تجاری",
-                    callback_data="trade_documents"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🌐 اینکوترمز",
-                    callback_data="trade_incoterms"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "💳 پرداخت‌های بین‌المللی",
-                    callback_data="trade_payment"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🚚 حمل‌ونقل و لجستیک",
-                    callback_data="trade_logistics"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📝 آزمون تجارت بین‌الملل",
-                    callback_data="trade_exam"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🔙 بازگشت به منوی اصلی",
-                    callback_data="home"
-                )
-            ],
-        ]
-
-        await query.edit_message_text(
-            "🌍 تجارت بین‌الملل\n\n"
-            "موضوع موردنظر خود را انتخاب کنید:",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-        return
-
-    sections = {
-        "trade_learning": (
-            "📘 آموزش تجارت بین‌الملل\n\n"
-            "آموزش مفاهیم پایه و تخصصی تجارت بین‌الملل."
-        ),
-        "trade_import_export": (
-            "🚢 واردات و صادرات\n\n"
-            "آشنایی با فرآیندهای واردات، صادرات و مراحل انجام معاملات."
-        ),
-        "trade_documents": (
-            "📑 اسناد و قراردادهای تجاری\n\n"
-            "معرفی اسناد مهم تجاری و اصول قراردادهای بین‌المللی."
-        ),
-        "trade_incoterms": (
-            "🌐 اینکوترمز\n\n"
-            "آشنایی با قواعد اینکوترمز و مسئولیت‌های خریدار و فروشنده."
-        ),
-        "trade_payment": (
-            "💳 پرداخت‌های بین‌المللی\n\n"
-            "آشنایی با روش‌های پرداخت و تسویه در تجارت بین‌الملل."
-        ),
-        "trade_logistics": (
-            "🚚 حمل‌ونقل و لجستیک\n\n"
-            "آشنایی با روش‌های حمل، لجستیک و فرآیند جابه‌جایی کالا."
-        ),
-        "trade_exam": (
-            "📝 آزمون تجارت بین‌الملل\n\n"
-            "سوالات و آزمون‌های آموزشی تجارت بین‌الملل."
-        ),
-        "management": (
-            "📚 آموزش مدیریت\n\n"
-            "مفاهیم مدیریت، رفتار سازمانی و مهارت‌های مدیریتی."
-        ),
-        "marketing": (
-            "📈 بازاریابی و فروش\n\n"
-            "آموزش بازاریابی، فروش، مذاکره و جذب مشتری."
-        ),
-        "economy": (
-            "💰 اقتصاد و بازار\n\n"
-            "مفاهیم اقتصادی و آشنایی با بازارها."
-        ),
-        "banking": (
-            "🏦 بانکداری\n\n"
-            "مفاهیم بانکداری، قوانین بانکی و خدمات مالی."
-        ),
-        "exam": (
-            "🎓 آزمون و تست\n\n"
-            "سوالات و آزمون‌های آموزشی."
-        ),
-        "files": (
-            "📂 فایل و جزوات\n\n"
-            "فایل‌ها و جزوات آموزشی در این بخش قرار می‌گیرند."
-        ),
-        "social": (
-            "📱 شبکه‌های اجتماعی\n\n"
-            "شبکه‌های اجتماعی اندیشکده مدیریت و بازار."
+شبکه‌های اجتماعی اندیشکده مدیریت و بازار."
         ),
     }
 
