@@ -68,8 +68,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "راهنمای ربات\n\n"
-        "برای مشاهده منوی اصلی، /start را ارسال کنید."
-    async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+       "برای مشاهده منوی اصلی، /start را ارسال کنید."
+    )
+        async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
