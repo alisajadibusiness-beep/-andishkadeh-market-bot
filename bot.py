@@ -69,53 +69,97 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "راهنمای ربات\n\n"
         "برای مشاهده منوی اصلی، /start را ارسال کنید."
-    )
-
-
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    if query.data == "trade":
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "📘 آموزش تجارت بین‌الملل",
+                    callback_data="trade_learning"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🚢 واردات و صادرات",
+                    callback_data="trade_import_export"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📑 اسناد و قراردادهای تجاری",
+                    callback_data="trade_documents"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🌐 اینکوترمز",
+                    callback_data="trade_incoterms"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💳 پرداخت‌های بین‌المللی",
+                    callback_data="trade_payment"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🚚 حمل‌ونقل و لجستیک",
+                    callback_data="trade_logistics"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📝 آزمون تجارت بین‌الملل",
+                    callback_data="trade_exam"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت به منوی اصلی",
+                    callback_data="home"
+                )
+            ],
+        ]
+
+        await query.edit_message_text(
+            "🌍 تجارت بین‌الملل\n\n"
+            "موضوع موردنظر خود را انتخاب کنید:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        return
+
     sections = {
-        "management": (
-            "📚 آموزش مدیریت\n\n"
-            "در این بخش آموزش‌های مدیریت، کسب‌وکار و مهارت‌های مدیریتی قرار می‌گیرد."
+        "trade_learning": (
+            "📘 آموزش تجارت بین‌الملل\n\n"
+            "آموزش مفاهیم پایه و تخصصی تجارت بین‌الملل."
         ),
-        "trade": (
-    "🌍 تجارت بین‌الملل\n\n"
-    "در این بخش می‌توانید آموزش‌ها و محتوای کاربردی تجارت بین‌الملل را دنبال کنید.\n\n"
-    "📌 موضوعات اصلی:\n"
-    "• اصول تجارت بین‌الملل\n"
-    "• واردات و صادرات\n"
-    "• اینکوترمز\n"
-    "• اسناد تجاری\n"
-    "• روش‌های پرداخت بین‌المللی\n"
-    "• حمل‌ونقل و لجستیک\n"
-    "• قراردادهای تجاری\n"
-),
-        "marketing": (
-            "📈 بازاریابی و فروش\n\n"
-            "محتوای آموزشی درباره بازاریابی، فروش، مذاکره و جذب مشتری."
+        "trade_import_export": (
+            "🚢 واردات و صادرات\n\n"
+            "آشنایی با فرآیندهای واردات، صادرات و مراحل انجام معاملات."
         ),
-        "economy": (
-            "💰 اقتصاد و بازار\n\n"
-            "تحلیل مفاهیم اقتصادی و آشنایی با بازارها و شاخص‌های مهم."
+        "trade_documents": (
+            "📑 اسناد و قراردادهای تجاری\n\n"
+            "معرفی اسناد مهم تجاری و اصول قراردادهای بین‌المللی."
         ),
-        "banking": (
-            "🏦 بانکداری\n\n"
-            "آموزش مفاهیم بانکداری، قوانین بانکی و خدمات مالی."
+        "trade_incoterms": (
+            "🌐 اینکوترمز\n\n"
+            "آشنایی با قواعد اینکوترمز و مسئولیت‌های خریدار و فروشنده."
         ),
-        "exam": (
-            "🎓 آزمون و تست\n\n"
-            "سوالات، آزمون‌های آزمایشی و منابع آموزشی."
+        "trade_payment": (
+            "💳 پرداخت‌های بین‌المللی\n\n"
+            "آشنایی با روش‌های پرداخت و تسویه در تجارت بین‌الملل."
         ),
-        "files": (
-            "📂 فایل و جزوات\n\n"
-            "در این بخش فایل‌ها و جزوات آموزشی قرار می‌گیرند."
+        "trade_logistics": (
+            "🚚 حمل‌ونقل و لجستیک\n\n"
+            "آشنایی با روش‌های حمل، لجستیک و فرآیند جابه‌جایی کالا."
         ),
-        "social": (
-            "📱 شبکه‌های اجتماعی\n\n"
-            "اینستاگرام، یوتیوب و سایر رسانه‌های اندیشکده مدیریت و بازار."
+        "trade_exam": (
+            "📝 آزمون تجارت بین‌الملل\n\n"
+            "سوالات و آزمون‌های آموزشی تجارت بین‌الملل."
         ),
     }
 
@@ -125,7 +169,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     keyboard = [
-        [InlineKeyboardButton("🔙 بازگشت به منوی اصلی", callback_data="home")]
+        [
+            InlineKeyboardButton(
+                "🔙 بازگشت به تجارت بین‌الملل",
+                callback_data="trade"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
     ]
 
     await query.edit_message_text(
