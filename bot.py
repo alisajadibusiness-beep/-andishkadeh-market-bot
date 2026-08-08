@@ -1,6 +1,5 @@
 import os
 from threading import Thread
-
 from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -9,63 +8,54 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes,
 )
-
 from menus import main_menu, trade_menu
-from management import management_basics_menu
-
-
+from management import (
+    management_basics_menu,
+    management_definition_text,
+    management_definition_menu,
+)
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 10000))
-
 app = Flask(__name__)
-
-
+# =========================
+# FLASK HOME
+# =========================
 @app.route("/")
 def home():
     return "Andishkadeh Market Bot is running."
-
-
 # =========================
 # START
 # =========================
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = """
 🎓 به اندیشکده مدیریت و بازار خوش آمدید
-
 مرجع آموزش و محتوای کاربردی در حوزه:
-
 📚 مدیریت و کسب‌وکار
 🌍 تجارت بین‌الملل
 📈 بازاریابی و فروش
 💰 اقتصاد و بازار
 🏦 بانکداری
 🎓 آزمون و منابع آموزشی
-
 👇 موضوع موردنظر خود را انتخاب کنید:
 """
-
     await update.message.reply_text(
         text,
         reply_markup=main_menu()
     )
-
-
 # =========================
 # HELP
 # =========================
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def help_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
     await update.message.reply_text(
-        "راهنمای ربات\n\n"
+        "📚 راهنمای ربات\n\n"
         "برای مشاهده منوی اصلی، /start را ارسال کنید."
     )
-
-
 # =========================
-# MENUS
+# MANAGEMENT MENU
 # =========================
-
 def management_menu():
     keyboard = [
         [
@@ -117,10 +107,10 @@ def management_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# MARKETING MENU
+# =========================
 def marketing_menu():
     keyboard = [
         [
@@ -149,7 +139,7 @@ def marketing_menu():
         ],
         [
             InlineKeyboardButton(
-                "📱 شبکه‌های اجتماعی",
+                "📱 بازاریابی شبکه‌های اجتماعی",
                 callback_data="social_marketing"
             )
         ],
@@ -172,10 +162,10 @@ def marketing_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# ECONOMY MENU
+# =========================
 def economy_menu():
     keyboard = [
         [
@@ -227,10 +217,10 @@ def economy_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# BANKING MENU
+# =========================
 def banking_menu():
     keyboard = [
         [
@@ -282,10 +272,10 @@ def banking_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# EXAM MENU
+# =========================
 def exam_menu():
     keyboard = [
         [
@@ -337,10 +327,10 @@ def exam_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# FILES MENU
+# =========================
 def files_menu():
     keyboard = [
         [
@@ -386,10 +376,10 @@ def files_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# SOCIAL MENU
+# =========================
 def social_menu():
     keyboard = [
         [
@@ -429,22 +419,122 @@ def social_menu():
             )
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
-
-
+# =========================
+# TRADE DOCUMENTS MENU
+# =========================
+def trade_documents_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📄 پروفرما اینویس",
+                callback_data="proforma_invoice"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🧾 فاکتور تجاری",
+                callback_data="commercial_invoice"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📦 پکینگ لیست",
+                callback_data="packing_list"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🚢 بارنامه",
+                callback_data="bill_of_lading"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🛃 گواهی مبدأ",
+                callback_data="certificate_origin"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📜 قرارداد فروش بین‌المللی",
+                callback_data="international_contract"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "⚖️ نکات حقوقی قراردادها",
+                callback_data="contract_legal"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📝 آزمون اسناد تجاری",
+                callback_data="documents_exam"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 بازگشت به تجارت بین‌الملل",
+                callback_data="trade"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
 # =========================
 # BUTTON HANDLER
 # =========================
-
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def button_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
     query = update.callback_query
     await query.answer()
-
-    # -------------------------
-    # تجارت بین‌الملل
-    # -------------------------
-
+    # =========================
+    # HOME
+    # =========================
+    if query.data == "home":
+        text = """
+🎓 اندیشکده مدیریت و بازار
+👇 از منوی زیر یک بخش را انتخاب کنید:
+"""
+        await query.edit_message_text(
+            text,
+            reply_markup=main_menu()
+        )
+        return
+    # =========================
+    # MANAGEMENT
+    # =========================
+    if query.data == "management":
+        await query.edit_message_text(
+            "📚 آموزش مدیریت\n\n"
+            "موضوع موردنظر خود را انتخاب کنید:",
+            reply_markup=management_menu()
+        )
+        return
+    # =========================
+    # MANAGEMENT BASICS
+    # =========================
+    if query.data == "management_basics":
+        await query.edit_message_text(
+            "🧠 مبانی مدیریت\n\n"
+            "موضوع موردنظر خود را انتخاب کنید:",
+            reply_markup=management_basics_menu()
+        )
+        return
+    # =========================
+    # MANAGEMENT DEFINITION
+    # =========================
+    if query.data == "management_definition":
+        await query.edit_message_text(
+            management_definition_text(),
+            reply_markup=management_definition_menu()
+        )
+        return
+    # =========================
+    # TRADE
+    # =========================
     if query.data == "trade":
         await query.edit_message_text(
             "🌍 تجارت بین‌الملل\n\n"
@@ -452,23 +542,19 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=trade_menu()
         )
         return
-
-    # -------------------------
-    # مدیریت
-    # -------------------------
-
-    if query.data == "management":
-    await query.edit_message_text(
-        "📚 آموزش مدیریت\n\n"
-        "موضوع موردنظر خود را انتخاب کنید:",
-        reply_markup=management_basics_menu()
-    )
-    return
-
-    # -------------------------
-    # بازاریابی
-    # -------------------------
-
+    # =========================
+    # TRADE DOCUMENTS
+    # =========================
+    if query.data == "trade_documents":
+        await query.edit_message_text(
+            "📑 اسناد و قراردادهای تجاری\n\n"
+            "سند یا موضوع موردنظر خود را انتخاب کنید:",
+            reply_markup=trade_documents_menu()
+        )
+        return
+    # =========================
+    # MARKETING
+    # =========================
     if query.data == "marketing":
         await query.edit_message_text(
             "📈 بازاریابی و فروش\n\n"
@@ -476,11 +562,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=marketing_menu()
         )
         return
-
-    # -------------------------
-    # اقتصاد
-    # -------------------------
-
+    # =========================
+    # ECONOMY
+    # =========================
     if query.data == "economy":
         await query.edit_message_text(
             "💰 اقتصاد و بازار\n\n"
@@ -488,11 +572,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=economy_menu()
         )
         return
-
-    # -------------------------
-    # بانکداری
-    # -------------------------
-
+    # =========================
+    # BANKING
+    # =========================
     if query.data == "banking":
         await query.edit_message_text(
             "🏦 بانکداری\n\n"
@@ -500,11 +582,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=banking_menu()
         )
         return
-
-    # -------------------------
-    # آزمون
-    # -------------------------
-
+    # =========================
+    # EXAM
+    # =========================
     if query.data == "exam":
         await query.edit_message_text(
             "🎓 آزمون و تست\n\n"
@@ -512,11 +592,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=exam_menu()
         )
         return
-
-    # -------------------------
-    # فایل‌ها
-    # -------------------------
-
+    # =========================
+    # FILES
+    # =========================
     if query.data == "files":
         await query.edit_message_text(
             "📂 فایل و جزوات\n\n"
@@ -524,11 +602,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=files_menu()
         )
         return
-
-    # -------------------------
-    # شبکه‌های اجتماعی
-    # -------------------------
-
+    # =========================
+    # SOCIAL
+    # =========================
     if query.data == "social":
         await query.edit_message_text(
             "📱 شبکه‌های اجتماعی\n\n"
@@ -536,276 +612,148 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=social_menu()
         )
         return
-
-    # -------------------------
-    # اسناد تجاری
-    # -------------------------
-
-    if query.data == "trade_documents":
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "📄 پروفرما اینویس",
-                    callback_data="proforma_invoice"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🧾 فاکتور تجاری",
-                    callback_data="commercial_invoice"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📦 پکینگ لیست",
-                    callback_data="packing_list"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🚢 بارنامه",
-                    callback_data="bill_of_lading"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🛃 گواهی مبدأ",
-                    callback_data="certificate_origin"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📜 قرارداد فروش بین‌المللی",
-                    callback_data="international_contract"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⚖️ نکات حقوقی قراردادها",
-                    callback_data="contract_legal"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📝 آزمون اسناد تجاری",
-                    callback_data="documents_exam"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🔙 بازگشت به تجارت بین‌الملل",
-                    callback_data="trade"
-                )
-            ],
-        ]
-
-        await query.edit_message_text(
-            "📑 اسناد و قراردادهای تجاری\n\n"
-            "سند یا موضوع موردنظر خود را انتخاب کنید:",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-        return
-
-    # -------------------------
-    # محتوای آموزشی
-    # -------------------------
-
+    # =========================
+    # CONTENTS
+    # =========================
     contents = {
-
-        "management_basics":
-            "🧠 مبانی مدیریت\n\n"
-            "مدیریت فرآیند برنامه‌ریزی، سازماندهی، هدایت و کنترل منابع "
-            "برای رسیدن به اهداف سازمان است.",
-
         "organizational_behavior":
             "👥 رفتار سازمانی\n\n"
-            "بررسی رفتار افراد و گروه‌ها در سازمان و تأثیر آن بر عملکرد "
-            "و بهره‌وری.",
-
+            "بررسی رفتار افراد و گروه‌ها در سازمان و تأثیر آن بر عملکرد و بهره‌وری.",
         "strategic_management":
             "🎯 مدیریت استراتژیک\n\n"
-            "فرآیند تعیین اهداف بلندمدت سازمان و انتخاب راهبردهای مناسب "
-            "برای دستیابی به آنها.",
-
+            "فرآیند تعیین اهداف بلندمدت سازمان و انتخاب راهبردهای مناسب برای دستیابی به آنها.",
         "human_resources":
             "💼 مدیریت منابع انسانی\n\n"
             "شامل جذب، آموزش، ارزیابی، توسعه و نگهداشت کارکنان سازمان.",
-
         "financial_management":
             "📊 مدیریت مالی\n\n"
-            "مدیریت منابع مالی، تصمیم‌گیری درباره سرمایه‌گذاری، تأمین مالی "
-            "و کنترل منابع مالی سازمان.",
-
+            "مدیریت منابع مالی، سرمایه‌گذاری و تأمین مالی سازمان.",
         "management_books":
             "📖 منابع و کتاب‌های مدیریت\n\n"
-            "در این بخش منابع و کتاب‌های منتخب مدیریت معرفی خواهند شد.",
-
+            "منابع و کتاب‌های منتخب مدیریت در این بخش معرفی خواهند شد.",
         "management_exam":
             "📝 آزمون مدیریت\n\n"
-            "آزمون‌های چهارگزینه‌ای مدیریت در این بخش قرار خواهند گرفت.",
-
+            "سوالات چهارگزینه‌ای مدیریت در این بخش قرار خواهند گرفت.",
         "marketing_basics":
             "📣 مبانی بازاریابی\n\n"
-            "بازاریابی فرآیند شناسایی نیاز مشتری، ایجاد ارزش و ارائه آن "
-            "به بازار است.",
-
+            "بازاریابی فرآیند شناسایی نیاز مشتری، ایجاد ارزش و ارائه آن به بازار است.",
         "digital_marketing":
             "🎯 بازاریابی دیجیتال\n\n"
-            "آشنایی با بازاریابی در فضای دیجیتال، محتوا، موتورهای جستجو "
-            "و شبکه‌های اجتماعی.",
-
+            "آشنایی با بازاریابی در فضای دیجیتال، محتوا، موتورهای جستجو و شبکه‌های اجتماعی.",
         "sales_negotiation":
             "💬 فروش و مذاکره\n\n"
             "اصول مذاکره، شناخت مشتری، ارائه ارزش و تکنیک‌های فروش.",
-
         "consumer_behavior":
             "👤 رفتار مصرف‌کننده\n\n"
             "بررسی عوامل مؤثر بر تصمیم خرید و رفتار مشتریان.",
-
         "social_marketing":
             "📱 بازاریابی شبکه‌های اجتماعی\n\n"
             "استراتژی تولید محتوا، جذب مخاطب و تبدیل مخاطب به مشتری.",
-
         "market_research":
             "📊 تحقیقات بازار\n\n"
             "جمع‌آوری و تحلیل اطلاعات بازار برای تصمیم‌گیری بهتر کسب‌وکار.",
-
         "marketing_exam":
             "📝 آزمون بازاریابی\n\n"
             "سوالات آموزشی بازاریابی و فروش در این بخش قرار می‌گیرند.",
-
         "economy_basics":
             "📚 مبانی اقتصاد\n\n"
-            "آشنایی با مفاهیم پایه عرضه، تقاضا، قیمت، بازار و منابع محدود.",
-
+            "آشنایی با مفاهیم پایه عرضه، تقاضا، قیمت و بازار.",
         "macro_economics":
             "📈 اقتصاد کلان\n\n"
-            "بررسی تورم، بیکاری، رشد اقتصادی، تولید ناخالص داخلی و سیاست‌های اقتصادی.",
-
+            "بررسی تورم، بیکاری، رشد اقتصادی و سیاست‌های اقتصادی.",
         "micro_economics":
             "📉 اقتصاد خرد\n\n"
             "بررسی رفتار مصرف‌کننده، تولیدکننده، بازار و قیمت‌گذاری.",
-
         "inflation_liquidity":
             "💵 تورم و نقدینگی\n\n"
             "بررسی مفهوم تورم، نقدینگی و عوامل مؤثر بر تغییر سطح عمومی قیمت‌ها.",
-
         "foreign_exchange":
             "💱 ارز و بازار ارز\n\n"
             "آشنایی با نرخ ارز، بازار ارز و عوامل مؤثر بر ارزش پول‌ها.",
-
         "financial_markets":
             "📊 بازارهای مالی\n\n"
             "آشنایی با بازار سرمایه، بازار پول و ابزارهای مالی.",
-
         "economy_exam":
             "📝 آزمون اقتصاد\n\n"
             "سوالات چهارگزینه‌ای اقتصاد در این بخش قرار خواهند گرفت.",
-
         "banking_basics":
             "🏦 مبانی بانکداری\n\n"
             "آشنایی با مفهوم بانک، انواع بانک‌ها، سپرده‌ها و خدمات بانکی.",
-
         "banking_laws":
             "⚖️ قوانین و مقررات بانکی\n\n"
             "آشنایی آموزشی با قوانین و مقررات مرتبط با نظام بانکی.",
-
         "banking_services":
             "💳 خدمات بانکی\n\n"
             "آشنایی با انواع خدمات بانکی، حساب‌ها، کارت‌ها و خدمات الکترونیکی.",
-
         "loans_credits":
             "💰 تسهیلات و اعتبارات\n\n"
             "آشنایی با انواع تسهیلات، اعتبارسنجی و مفاهیم اعتباری.",
-
         "aml":
             "🔐 مبارزه با پولشویی\n\n"
             "آشنایی با مفاهیم پایه مبارزه با پولشویی و شناخت مشتری.",
-
         "bank_management":
             "📊 مدیریت بانک\n\n"
             "آشنایی با مدیریت منابع، مصارف، ریسک و عملکرد بانک.",
-
         "banking_exam":
             "📝 آزمون بانکداری\n\n"
-            "سوالات آموزشی بانکداری و قوانین بانکی در این بخش قرار می‌گیرند.",
-
+            "سوالات آموزشی بانکداری و قوانین بانکی.",
         "exam_management":
             "📚 آزمون مدیریت\n\n"
             "بخش سوالات مدیریت.",
-
         "exam_trade":
             "🌍 آزمون تجارت بین‌الملل\n\n"
             "بخش سوالات تجارت بین‌الملل.",
-
         "exam_marketing":
             "📈 آزمون بازاریابی\n\n"
             "بخش سوالات بازاریابی و فروش.",
-
         "exam_economy":
             "💰 آزمون اقتصاد\n\n"
             "بخش سوالات اقتصاد.",
-
         "exam_banking":
             "🏦 آزمون بانکداری\n\n"
             "بخش سوالات بانکداری و قوانین بانکی.",
-
         "exam_iq":
             "🧠 هوش و استعداد\n\n"
-            "تمرین‌ها و سوالات هوش و استعداد در این بخش قرار می‌گیرند.",
-
+            "تمرین‌ها و سوالات هوش و استعداد.",
         "exam_english":
             "🇬🇧 زبان انگلیسی\n\n"
             "تمرین‌های زبان انگلیسی عمومی و تخصصی.",
-
         "files_management":
             "📕 جزوات مدیریت\n\n"
-            "فایل‌های آموزشی مدیریت در این بخش قرار می‌گیرند.",
-
+            "فایل‌های آموزشی مدیریت.",
         "files_trade":
             "🌍 جزوات تجارت بین‌الملل\n\n"
-            "فایل‌های آموزشی تجارت بین‌الملل در این بخش قرار می‌گیرند.",
-
+            "فایل‌های آموزشی تجارت بین‌الملل.",
         "files_marketing":
             "📈 جزوات بازاریابی\n\n"
-            "فایل‌های آموزشی بازاریابی و فروش در این بخش قرار می‌گیرند.",
-
+            "فایل‌های آموزشی بازاریابی و فروش.",
         "files_economy":
             "💰 جزوات اقتصاد\n\n"
-            "فایل‌های آموزشی اقتصاد در این بخش قرار می‌گیرند.",
-
+            "فایل‌های آموزشی اقتصاد.",
         "files_banking":
             "🏦 جزوات بانکداری\n\n"
-            "فایل‌های آموزشی بانکداری در این بخش قرار می‌گیرند.",
-
+            "فایل‌های آموزشی بانکداری.",
         "files_exam":
             "📝 منابع آزمون\n\n"
-            "منابع و فایل‌های آمادگی آزمون در این بخش قرار می‌گیرند.",
-
+            "منابع و فایل‌های آمادگی آزمون.",
         "instagram":
             "📸 اینستاگرام\n\n"
             "صفحه رسمی اندیشکده مدیریت و بازار.",
-
         "youtube":
             "▶️ یوتیوب\n\n"
             "کانال یوتیوب اندیشکده مدیریت و بازار.",
-
         "whatsapp":
             "💬 واتساپ\n\n"
             "ارتباط با اندیشکده مدیریت و بازار از طریق واتساپ.",
-
         "telegram_channel":
             "📢 کانال تلگرام\n\n"
             "کانال رسمی اندیشکده مدیریت و بازار.",
-
         "website":
             "🌐 وب‌سایت\n\n"
             "وب‌سایت اندیشکده مدیریت و بازار.",
-
         "proforma_invoice":
             "📄 پروفرما اینویس\n\n"
-            "پروفرما اینویس یا پیش‌فاکتور، سندی است که فروشنده "
-            "قبل از انجام معامله برای خریدار صادر می‌کند.\n\n"
+            "پروفرما اینویس یا پیش‌فاکتور، سندی است که فروشنده قبل از انجام معامله برای خریدار صادر می‌کند.\n\n"
             "📌 معمولاً شامل:\n"
             "• مشخصات فروشنده و خریدار\n"
             "• شرح کالا\n"
@@ -813,47 +761,35 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "• شرایط پرداخت\n"
             "• شرایط تحویل\n"
             "• اعتبار پیش‌فاکتور",
-
         "commercial_invoice":
             "🧾 فاکتور تجاری\n\n"
-            "فاکتور تجاری سند اصلی معامله است که اطلاعات فروش کالا "
-            "و مبلغ معامله را مشخص می‌کند.",
-
+            "فاکتور تجاری سند اصلی معامله است که اطلاعات فروش کالا و مبلغ معامله را مشخص می‌کند.",
         "packing_list":
             "📦 پکینگ لیست\n\n"
-            "Packing List اطلاعات مربوط به بسته‌بندی و محتویات محموله "
-            "را مشخص می‌کند.",
-
+            "Packing List اطلاعات مربوط به بسته‌بندی و محتویات محموله را مشخص می‌کند.",
         "bill_of_lading":
             "🚢 بارنامه\n\n"
-            "بارنامه سند حمل کالا است و اطلاعات مربوط به فرستنده، "
-            "گیرنده، کالا و حمل‌کننده را مشخص می‌کند.",
-
+            "بارنامه سند حمل کالا است و اطلاعات مربوط به فرستنده، گیرنده، کالا و حمل‌کننده را مشخص می‌کند.",
         "certificate_origin":
             "🛃 گواهی مبدأ\n\n"
             "گواهی مبدأ سندی است که کشور یا محل تولید کالا را مشخص می‌کند.",
-
         "international_contract":
             "📜 قرارداد فروش بین‌المللی\n\n"
-            "قرارداد فروش بین‌المللی توافق میان طرفین معامله درباره "
-            "شرایط خرید و فروش کالا یا خدمات در سطح بین‌المللی است.",
-
+            "قرارداد فروش بین‌المللی توافق میان طرفین معامله درباره شرایط خرید و فروش کالا یا خدمات در سطح بین‌المللی است.",
         "contract_legal":
             "⚖️ نکات حقوقی قراردادها\n\n"
-            "در قراردادهای بین‌المللی باید موضوعاتی مانند قانون حاکم، "
-            "شرایط پرداخت، تحویل، مسئولیت طرفین و روش حل اختلاف "
-            "به‌صورت دقیق مشخص شود.",
-
+            "در قراردادهای بین‌المللی باید موضوعاتی مانند قانون حاکم، شرایط پرداخت، تحویل، مسئولیت طرفین و روش حل اختلاف به‌صورت دقیق مشخص شود.",
         "documents_exam":
             "📝 آزمون اسناد تجاری\n\n"
             "سوالات و آزمون‌های اسناد تجاری در این بخش قرار می‌گیرند.",
     }
-
+    # =========================
+    # SHOW CONTENT
+    # =========================
     text = contents.get(
         query.data,
-        "گزینه موردنظر پیدا نشد."
+        "❌ گزینه موردنظر پیدا نشد."
     )
-
     keyboard = [
         [
             InlineKeyboardButton(
@@ -862,80 +798,56 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         ]
     ]
-
     await query.edit_message_text(
         text,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-
-
 # =========================
-# HOME BUTTON
+# FLASK SERVER
 # =========================
-
-async def home_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    text = """
-🎓 اندیشکده مدیریت و بازار
-
-👇 از منوی زیر یک بخش را انتخاب کنید:
-"""
-
-    await query.edit_message_text(
-        text,
-        reply_markup=main_menu()
-    )
-
-
-# =========================
-# FLASK
-# =========================
-
 def run_flask():
     app.run(
         host="0.0.0.0",
         port=PORT
     )
-
-
 # =========================
 # MAIN
 # =========================
-
 def main():
     if not TOKEN:
-        raise ValueError("BOT_TOKEN تنظیم نشده است.")
-
+        raise ValueError(
+            "BOT_TOKEN تنظیم نشده است."
+        )
     Thread(
         target=run_flask,
         daemon=True
     ).start()
-
-    telegram_app = Application.builder().token(TOKEN).build()
-
-    telegram_app.add_handler(
-        CommandHandler("start", start)
+    telegram_app = (
+        Application
+        .builder()
+        .token(TOKEN)
+        .build()
     )
-
     telegram_app.add_handler(
-        CommandHandler("help", help_command)
-    )
-
-    telegram_app.add_handler(
-        CallbackQueryHandler(
-            home_button,
-            pattern="^home$"
+        CommandHandler(
+            "start",
+            start
         )
     )
-
     telegram_app.add_handler(
-        CallbackQueryHandler(button_handler)
+        CommandHandler(
+            "help",
+            help_command
+        )
     )
-
+    telegram_app.add_handler(
+        CallbackQueryHandler(
+            button_handler
+        )
+    )
     telegram_app.run_polling()
-
-
+# =========================
+# RUN
+# =========================
 if __name__ == "__main__":
     main()
