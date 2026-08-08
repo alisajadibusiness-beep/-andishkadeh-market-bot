@@ -1,9 +1,18 @@
 import os
-import asyncio
+from flask import Flask
+from threading import Thread
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
+PORT = int(os.getenv("PORT", 10000))
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def home():
+    return "Andishkadeh Market Bot is running."
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,16 +40,22 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+def run_flask():
+    app.run(host="0.0.0.0", port=PORT)
+
+
 def main():
     if not TOKEN:
         raise ValueError("BOT_TOKEN تنظیم نشده است.")
 
-    app = Application.builder().token(TOKEN).build()
+    Thread(target=run_flask, daemon=True).start()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
+    telegram_app = Application.builder().token(TOKEN).build()
 
-    app.run_polling()
+    telegram_app.add_handler(CommandHandler("start", start))
+    telegram_app.add_handler(CommandHandler("help", help_command))
+
+    telegram_app.run_polling()
 
 
 if __name__ == "__main__":
