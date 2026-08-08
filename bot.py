@@ -68,9 +68,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "راهنمای ربات\n\n"
-       "برای مشاهده منوی اصلی، /start را ارسال کنید."
+        "برای مشاهده منوی اصلی، /start را ارسال کنید."
     )
-        async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
@@ -162,6 +164,34 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "📝 آزمون تجارت بین‌الملل\n\n"
             "سوالات و آزمون‌های آموزشی تجارت بین‌الملل."
         ),
+        "management": (
+            "📚 آموزش مدیریت\n\n"
+            "مفاهیم مدیریت، رفتار سازمانی و مهارت‌های مدیریتی."
+        ),
+        "marketing": (
+            "📈 بازاریابی و فروش\n\n"
+            "آموزش بازاریابی، فروش، مذاکره و جذب مشتری."
+        ),
+        "economy": (
+            "💰 اقتصاد و بازار\n\n"
+            "مفاهیم اقتصادی و آشنایی با بازارها."
+        ),
+        "banking": (
+            "🏦 بانکداری\n\n"
+            "مفاهیم بانکداری، قوانین بانکی و خدمات مالی."
+        ),
+        "exam": (
+            "🎓 آزمون و تست\n\n"
+            "سوالات و آزمون‌های آموزشی."
+        ),
+        "files": (
+            "📂 فایل و جزوات\n\n"
+            "فایل‌ها و جزوات آموزشی در این بخش قرار می‌گیرند."
+        ),
+        "social": (
+            "📱 شبکه‌های اجتماعی\n\n"
+            "شبکه‌های اجتماعی اندیشکده مدیریت و بازار."
+        ),
     }
 
     text = sections.get(
@@ -172,16 +202,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
             InlineKeyboardButton(
-                "🔙 بازگشت به تجارت بین‌الملل",
-                callback_data="trade"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🏠 منوی اصلی",
+                "🔙 بازگشت به منوی اصلی",
                 callback_data="home"
             )
-        ],
+        ]
     ]
 
     await query.edit_message_text(
@@ -220,9 +244,11 @@ def main():
 
     telegram_app.add_handler(CommandHandler("start", start))
     telegram_app.add_handler(CommandHandler("help", help_command))
+
     telegram_app.add_handler(
         CallbackQueryHandler(home_button, pattern="^home$")
     )
+
     telegram_app.add_handler(
         CallbackQueryHandler(button_handler)
     )
