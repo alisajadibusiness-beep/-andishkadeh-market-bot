@@ -1,17 +1,8 @@
 import os
 from flask import Flask
 from threading import Thread
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 # =========================================================
 # MANAGEMENT
 # =========================================================
@@ -44,14 +35,31 @@ from trade import (
     TRADE_QUESTIONS,
 )
 # =========================================================
+# MARKETING
+# =========================================================
+from marketing import (
+    marketing_menu,
+    marketing_basics_text,
+    consumer_behavior_text,
+    market_research_text,
+    marketing_4p_text,
+    marketing_stp_text,
+    marketing_branding_text,
+    sales_negotiation_text,
+    sales_funnel_text,
+    digital_marketing_text,
+    marketing_exam_question,
+    MARKETING_QUESTIONS,
+)
+# =========================================================
 # SETTINGS
 # =========================================================
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 10000))
+app = Flask(__name__)
 # =========================================================
 # FLASK
 # =========================================================
-app = Flask(__name__)
 @app.route("/")
 def home():
     return "Andishkadeh Market Bot is running."
@@ -138,7 +146,7 @@ async def help_command(
 ):
     await update.message.reply_text(
         """
-📚 راهنمای اندیشکده مدیریت و بازار
+📚 راهنمای ربات
 /start
 نمایش منوی اصلی
 /help
@@ -190,6 +198,56 @@ async def show_management(query):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 # =========================================================
+# TRADE LESSON MENU
+# =========================================================
+def trade_lesson_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📝 آزمون تجارت بین‌الملل",
+                callback_data="trade_exam"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 تجارت بین‌الملل",
+                callback_data="trade"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# MARKETING LESSON MENU
+# =========================================================
+def marketing_lesson_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📝 آزمون بازاریابی و فروش",
+                callback_data="marketing_exam"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 بازاریابی و فروش",
+                callback_data="marketing"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+# =========================================================
 # GENERIC MESSAGE
 # =========================================================
 async def generic_message(
@@ -240,9 +298,6 @@ async def button_handler(
     if data == "management":
         await show_management(query)
         return
-    # =====================================================
-    # MANAGEMENT BASICS
-    # =====================================================
     if data == "management_basics":
         await query.edit_message_text(
             """
@@ -253,63 +308,42 @@ async def button_handler(
             reply_markup=management_basics_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT DEFINITION
-    # =====================================================
     if data == "management_definition":
         await query.edit_message_text(
             management_definition_text(),
             reply_markup=management_definition_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT FUNCTIONS
-    # =====================================================
     if data == "management_functions":
         await query.edit_message_text(
             management_functions_text(),
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT LEVELS
-    # =====================================================
     if data == "management_levels":
         await query.edit_message_text(
             management_levels_text(),
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT ROLES
-    # =====================================================
     if data == "management_roles":
         await query.edit_message_text(
             management_roles_text(),
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT SKILLS
-    # =====================================================
     if data == "management_skills":
         await query.edit_message_text(
             management_skills_text(),
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # EFFICIENCY / EFFECTIVENESS
-    # =====================================================
     if data == "efficiency_effectiveness":
         await query.edit_message_text(
             efficiency_effectiveness_text(),
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT SCHOOLS
-    # =====================================================
     if data == "management_schools":
         await query.edit_message_text(
             management_schools_text(),
@@ -320,31 +354,12 @@ async def button_handler(
     # MANAGEMENT EXAM
     # =====================================================
     if data == "management_basics_exam":
-        text, keyboard = exam_question(
-            0,
-            0
-        )
+        text, keyboard = exam_question(0, 0)
         await query.edit_message_text(
             text,
             reply_markup=keyboard
         )
         return
-    # =====================================================
-    # MANAGEMENT DEFINITION EXAM
-    # =====================================================
-    if data == "management_definition_exam":
-        text, keyboard = exam_question(
-            0,
-            0
-        )
-        await query.edit_message_text(
-            text,
-            reply_markup=keyboard
-        )
-        return
-    # =====================================================
-    # MANAGEMENT EXAM ANSWERS
-    # =====================================================
     if data.startswith("mg_answer_"):
         parts = data.split("_")
         question_index = int(parts[2])
@@ -420,54 +435,36 @@ async def button_handler(
             reply_markup=trade_menu()
         )
         return
-    # =====================================================
-    # TRADE BASICS
-    # =====================================================
     if data == "trade_basics":
         await query.edit_message_text(
             trade_basics_text(),
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE DOCUMENTS
-    # =====================================================
     if data == "trade_documents":
         await query.edit_message_text(
             trade_documents_text(),
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE LOGISTICS
-    # =====================================================
     if data == "trade_logistics":
         await query.edit_message_text(
             trade_logistics_text(),
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE PAYMENT
-    # =====================================================
     if data == "trade_payment":
         await query.edit_message_text(
             trade_payment_text(),
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE INCOTERMS
-    # =====================================================
     if data == "trade_incoterms":
         await query.edit_message_text(
             trade_incoterms_text(),
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE LAWS
-    # =====================================================
     if data == "trade_laws":
         await query.edit_message_text(
             trade_laws_text(),
@@ -478,26 +475,18 @@ async def button_handler(
     # TRADE EXAM
     # =====================================================
     if data == "trade_exam":
-        text, keyboard = trade_exam_question(
-            0,
-            0
-        )
+        text, keyboard = trade_exam_question(0, 0)
         await query.edit_message_text(
             text,
             reply_markup=keyboard
         )
         return
-    # =====================================================
-    # TRADE EXAM ANSWERS
-    # =====================================================
     if data.startswith("trade_answer_"):
         parts = data.split("_")
         question_index = int(parts[2])
         selected_answer = int(parts[3])
         score = int(parts[4])
-        question = TRADE_QUESTIONS[
-            question_index
-        ]
+        question = TRADE_QUESTIONS[question_index]
         if selected_answer == question["correct"]:
             score += 1
             result = "✅ پاسخ صحیح است!"
@@ -555,15 +544,149 @@ async def button_handler(
         )
         return
     # =====================================================
-    # OTHER MAIN SECTIONS
+    # MARKETING
     # =====================================================
     if data == "marketing":
-        await generic_message(
-            query,
-            "📈 بازاریابی و فروش",
-            "محتوای آموزشی بازاریابی و فروش به‌زودی در این بخش قرار می‌گیرد."
+        await query.edit_message_text(
+            """
+📈 بازاریابی و فروش
+در این بخش با اصول بازاریابی، رفتار مصرف‌کننده، تحقیقات بازار، برندینگ، فروش و بازاریابی دیجیتال آشنا شوید.
+👇 موضوع موردنظر خود را انتخاب کنید:
+""",
+            reply_markup=marketing_menu()
         )
         return
+    if data == "marketing_basics":
+        await query.edit_message_text(
+            marketing_basics_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "consumer_behavior":
+        await query.edit_message_text(
+            consumer_behavior_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "market_research":
+        await query.edit_message_text(
+            market_research_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "marketing_4p":
+        await query.edit_message_text(
+            marketing_4p_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "marketing_stp":
+        await query.edit_message_text(
+            marketing_stp_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "marketing_branding":
+        await query.edit_message_text(
+            marketing_branding_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "sales_negotiation":
+        await query.edit_message_text(
+            sales_negotiation_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "sales_funnel":
+        await query.edit_message_text(
+            sales_funnel_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    if data == "digital_marketing":
+        await query.edit_message_text(
+            digital_marketing_text(),
+            reply_markup=marketing_lesson_menu()
+        )
+        return
+    # =====================================================
+    # MARKETING EXAM
+    # =====================================================
+    if data == "marketing_exam":
+        text, keyboard = marketing_exam_question(0, 0)
+        await query.edit_message_text(
+            text,
+            reply_markup=keyboard
+        )
+        return
+    if data.startswith("marketing_answer_"):
+        parts = data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+        question = MARKETING_QUESTIONS[
+            question_index
+        ]
+        if selected_answer == question["correct"]:
+            score += 1
+            result = "✅ پاسخ صحیح است!"
+        else:
+            correct_answer = question["options"][
+                question["correct"]
+            ]
+            result = (
+                "❌ پاسخ اشتباه است.\n\n"
+                f"پاسخ صحیح: {correct_answer}"
+            )
+        next_question = question_index + 1
+        if next_question >= len(MARKETING_QUESTIONS):
+            await query.edit_message_text(
+                f"""
+🏆 آزمون بازاریابی و فروش به پایان رسید!
+⭐ امتیاز شما:
+{score} از {len(MARKETING_QUESTIONS)}
+{result}
+""",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "🔄 شروع مجدد",
+                                callback_data="marketing_exam"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🔙 بازاریابی و فروش",
+                                callback_data="marketing"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🏠 منوی اصلی",
+                                callback_data="home"
+                            )
+                        ],
+                    ]
+                )
+            )
+            return
+        text, keyboard = marketing_exam_question(
+            next_question,
+            score
+        )
+        await query.edit_message_text(
+            f"""
+{result}
+{text}
+""",
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # OTHER SECTIONS
+    # =====================================================
     if data == "economy":
         await generic_message(
             query,
@@ -627,7 +750,7 @@ async def button_handler(
         )
         return
     # =====================================================
-    # UNKNOWN
+    # UNKNOWN CALLBACK
     # =====================================================
     await query.edit_message_text(
         """
@@ -646,31 +769,6 @@ async def button_handler(
         )
     )
 # =========================================================
-# TRADE LESSON MENU
-# =========================================================
-def trade_lesson_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "📝 آزمون تجارت بین‌الملل",
-                callback_data="trade_exam"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 تجارت بین‌الملل",
-                callback_data="trade"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🏠 منوی اصلی",
-                callback_data="home"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-# =========================================================
 # MAIN
 # =========================================================
 def main():
@@ -678,19 +776,16 @@ def main():
         raise ValueError(
             "BOT_TOKEN تنظیم نشده است."
         )
-    # Flask server
     Thread(
         target=run_flask,
         daemon=True
     ).start()
-    # Telegram application
     telegram_app = (
         Application
         .builder()
         .token(TOKEN)
         .build()
     )
-    # Commands
     telegram_app.add_handler(
         CommandHandler(
             "start",
@@ -703,13 +798,11 @@ def main():
             help_command
         )
     )
-    # Callback handler
     telegram_app.add_handler(
         CallbackQueryHandler(
             button_handler
         )
     )
-    # Start polling
     telegram_app.run_polling(
         drop_pending_updates=True
     )
