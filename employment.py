@@ -1,7 +1,8 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+
 def employment_banks_text():
-return “””
+    return """
 🏦 آزمون‌های استخدامی بانک‌ها
 
 🎯 مرکز تخصصی آمادگی آزمون‌های استخدامی بانک‌ها
@@ -224,6 +225,7 @@ return “””
 • سرعت و دقت
 
 🎯 هدف:
+
 افزایش سرعت تشخیص الگو و کاهش زمان پاسخ‌گویی.
 
 ━━━━━━━━━━━━━━━━━━
@@ -348,100 +350,102 @@ return “””
 🏦 اندیشکده مدیریت و بازار
 
 آموزش، آزمون و آمادگی حرفه‌ای برای مسیر شغلی.
-“””
+"""
+
 
 def employment_menu():
-keyboard = [
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🏛️ بانک ملی",
+                callback_data="employment_melli"
+            ),
+            InlineKeyboardButton(
+                "🔵 بانک ملت",
+                callback_data="employment_mellat"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🟢 بانک تجارت",
+                callback_data="employment_tejarat"
+            ),
+            InlineKeyboardButton(
+                "🔴 بانک صادرات",
+                callback_data="employment_saderat"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🟠 بانک رفاه",
+                callback_data="employment_refah"
+            ),
+            InlineKeyboardButton(
+                "🔷 بانک شهر",
+                callback_data="employment_shahr"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🟦 بانک مسکن",
+                callback_data="employment_maskan"
+            ),
+            InlineKeyboardButton(
+                "🌾 بانک کشاورزی",
+                callback_data="employment_keshavarzi"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🟣 بانک سپه",
+                callback_data="employment_sepah"
+            ),
+            InlineKeyboardButton(
+                "💚 بانک مهر ایران",
+                callback_data="employment_mehr"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "📚 دروس و منابع",
+                callback_data="employment_subjects"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🧠 آزمون هوش",
+                callback_data="employment_iq"
+            ),
+            InlineKeyboardButton(
+                "🇬🇧 آزمون زبان",
+                callback_data="employment_english"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🏆 آزمون جامع",
+                callback_data="employment_full_exam"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🎤 مصاحبه استخدامی",
+                callback_data="employment_interview"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
 
-    [
-        InlineKeyboardButton(
-            "🏛️ بانک ملی",
-            callback_data="employment_melli"
-        ),
-        InlineKeyboardButton(
-            "🔵 بانک ملت",
-            callback_data="employment_mellat"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "🟢 بانک تجارت",
-            callback_data="employment_tejarat"
-        ),
-        InlineKeyboardButton(
-            "🔴 بانک صادرات",
-            callback_data="employment_saderat"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "🟠 بانک رفاه",
-            callback_data="employment_refah"
-        ),
-        InlineKeyboardButton(
-            "🔷 بانک شهر",
-            callback_data="employment_shahr"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "🟦 بانک مسکن",
-            callback_data="employment_maskan"
-        ),
-        InlineKeyboardButton(
-            "🌾 بانک کشاورزی",
-            callback_data="employment_keshavarzi"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "🟣 بانک سپه",
-            callback_data="employment_sepah"
-        ),
-        InlineKeyboardButton(
-            "💚 بانک مهر ایران",
-            callback_data="employment_mehr"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "📚 دروس و منابع",
-            callback_data="employment_subjects"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🧠 آزمون هوش",
-            callback_data="employment_iq"
-        ),
-        InlineKeyboardButton(
-            "🇬🇧 آزمون زبان",
-            callback_data="employment_english"
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            "🏆 آزمون جامع",
-            callback_data="employment_full_exam"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🎤 مصاحبه استخدامی",
-            callback_data="employment_interview"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🔙 منوی اصلی",
-            callback_data="home"
-        )
-    ],
-]
-return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup(keyboard)
+
 
 def employment_bank_text(bank_name):
-return f”””
+    return f"""
 🏦 آمادگی استخدامی {bank_name}
 
 📚 این بخش برای آمادگی آزمون استخدامی {bank_name} طراحی شده است.
@@ -481,10 +485,11 @@ return f”””
 آمادگی علمی و تستی برای شرکت در آزمون‌های استخدامی {bank_name}.
 
 ⚠️ منابع و شرایط هر آزمون ممکن است با توجه به دفترچه رسمی همان دوره متفاوت باشد.
-“””
+"""
+
 
 def employment_subjects_text():
-return “””
+    return """
 📚 دروس آزمون‌های استخدامی بانک‌ها
 
 برای مطالعه هدفمند، دروس به چند گروه تقسیم می‌شوند:
@@ -521,10 +526,11 @@ return “””
 📊 تحلیل نتیجه
 ⬇️
 🔄 مرور نقاط ضعف
-“””
+"""
+
 
 def employment_interview_text():
-return “””
+    return """
 🎤 آمادگی مصاحبه استخدامی بانک‌ها
 
 مرحله مصاحبه یکی از مهم‌ترین مراحل فرآیند استخدام است.
@@ -570,10 +576,11 @@ return “””
 🎯 هدف:
 
 افزایش آمادگی برای پاسخ‌گویی حرفه‌ای، منطقی و با اعتمادبه‌نفس در مصاحبه.
-“””
+"""
+
 
 def employment_iq_text():
-return “””
+    return """
 🧠 آزمون هوش و استعداد استخدامی
 
 در این بخش مهارت‌های زیر تمرین می‌شوند:
@@ -587,13 +594,16 @@ return “””
 📊 تحلیل داده
 ⏱️ سرعت و دقت
 
+━━━━━━━━━━━━━━━━━━
+
 🎯 هدف:
 
 افزایش سرعت حل سؤال و کاهش خطا در شرایط آزمون.
-“””
+"""
+
 
 def employment_english_text():
-return “””
+    return """
 🇬🇧 زبان انگلیسی استخدامی
 
 موضوعات اصلی:
@@ -607,13 +617,16 @@ return “””
 🧩 کلوز تست
 🔄 مترادف و متضاد
 
+━━━━━━━━━━━━━━━━━━
+
 🎯 تمرکز اصلی:
 
 افزایش توانایی پاسخ‌گویی سریع به سؤالات زبان آزمون‌های استخدامی.
-“””
+"""
+
 
 def employment_full_exam_text():
-return “””
+    return """
 🏆 آزمون جامع استخدامی بانک‌ها
 
 این آزمون برای شبیه‌سازی شرایط آزمون واقعی طراحی می‌شود.
@@ -648,46 +661,47 @@ return “””
 ⏱️ توصیه:
 
 آزمون را با زمان محدود انجام دهید تا شرایط واقعی آزمون را بهتر شبیه‌سازی کنید.
-“””
+"""
+
 
 def employment_bank_menu(bank_name):
-keyboard = [
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📖 درسنامه",
+                callback_data=f"bank_lesson_{bank_name}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📝 نمونه سؤالات",
+                callback_data=f"bank_questions_{bank_name}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "⏱️ آزمون زمان‌دار",
+                callback_data=f"bank_exam_{bank_name}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🎯 نکات مهم",
+                callback_data=f"bank_tips_{bank_name}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 آزمون‌های استخدامی",
+                callback_data="employment"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
 
-    [
-        InlineKeyboardButton(
-            "📖 درسنامه",
-            callback_data=f"bank_lesson_{bank_name}"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "📝 نمونه سؤالات",
-            callback_data=f"bank_questions_{bank_name}"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "⏱️ آزمون زمان‌دار",
-            callback_data=f"bank_exam_{bank_name}"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🎯 نکات مهم",
-            callback_data=f"bank_tips_{bank_name}"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🔙 آزمون‌های استخدامی",
-            callback_data="employment"
-        )
-    ],
-    [
-        InlineKeyboardButton(
-            "🏠 منوی اصلی",
-            callback_data="home"
-        )
-    ],
-]
-return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup(keyboard)
