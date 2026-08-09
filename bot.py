@@ -12,6 +12,9 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes,
 )
+# =========================================================
+# MANAGEMENT
+# =========================================================
 from management import (
     management_basics_menu,
     management_definition_text,
@@ -25,6 +28,20 @@ from management import (
     lesson_menu,
     exam_question,
     QUESTIONS,
+)
+# =========================================================
+# INTERNATIONAL TRADE
+# =========================================================
+from trade import (
+    trade_menu,
+    trade_basics_text,
+    trade_documents_text,
+    trade_logistics_text,
+    trade_payment_text,
+    trade_incoterms_text,
+    trade_laws_text,
+    trade_exam_question,
+    TRADE_QUESTIONS,
 )
 # =========================================================
 # SETTINGS
@@ -122,18 +139,16 @@ async def help_command(
     await update.message.reply_text(
         """
 📚 راهنمای اندیشکده مدیریت و بازار
-برای مشاهده منوی اصلی:
 /start
-برای دریافت راهنما:
+نمایش منوی اصلی
 /help
+نمایش راهنما
 """
     )
 # =========================================================
 # MANAGEMENT MENU
 # =========================================================
-async def show_management(
-    query
-):
+async def show_management(query):
     keyboard = [
         [
             InlineKeyboardButton(
@@ -185,7 +200,7 @@ async def generic_message(
     keyboard = [
         [
             InlineKeyboardButton(
-                "🔙 بازگشت",
+                "🔙 منوی اصلی",
                 callback_data="home"
             )
         ]
@@ -315,7 +330,7 @@ async def button_handler(
         )
         return
     # =====================================================
-    # DEFINITION EXAM
+    # MANAGEMENT DEFINITION EXAM
     # =====================================================
     if data == "management_definition_exam":
         text, keyboard = exam_question(
@@ -328,19 +343,14 @@ async def button_handler(
         )
         return
     # =====================================================
-    # EXAM ANSWERS
+    # MANAGEMENT EXAM ANSWERS
     # =====================================================
     if data.startswith("mg_answer_"):
         parts = data.split("_")
         question_index = int(parts[2])
         selected_answer = int(parts[3])
         score = int(parts[4])
-        question = QUESTIONS[
-            question_index
-        ]
-        # -----------------------------------------------
-        # CHECK ANSWER
-        # -----------------------------------------------
+        question = QUESTIONS[question_index]
         if selected_answer == question["correct"]:
             score += 1
             result = "✅ پاسخ صحیح است!"
@@ -352,21 +362,14 @@ async def button_handler(
                 "❌ پاسخ اشتباه است.\n\n"
                 f"پاسخ صحیح: {correct_answer}"
             )
-        # -----------------------------------------------
-        # NEXT QUESTION
-        # -----------------------------------------------
         next_question = question_index + 1
-        # -----------------------------------------------
-        # EXAM FINISHED
-        # -----------------------------------------------
         if next_question >= len(QUESTIONS):
             await query.edit_message_text(
                 f"""
-🏆 آزمون به پایان رسید!
+🏆 آزمون مبانی مدیریت به پایان رسید!
 ⭐ امتیاز شما:
 {score} از {len(QUESTIONS)}
 {result}
-📚 برای ادامه آموزش به مبانی مدیریت برگردید.
 """,
                 reply_markup=InlineKeyboardMarkup(
                     [
@@ -392,9 +395,6 @@ async def button_handler(
                 )
             )
             return
-        # -----------------------------------------------
-        # NEXT QUESTION
-        # -----------------------------------------------
         text, keyboard = exam_question(
             next_question,
             score
@@ -408,15 +408,155 @@ async def button_handler(
         )
         return
     # =====================================================
-    # OTHER MAIN MENU SECTIONS
+    # INTERNATIONAL TRADE
     # =====================================================
     if data == "trade":
-        await generic_message(
-            query,
-            "🌍 تجارت بین‌الملل",
-            "محتوای آموزشی تجارت بین‌الملل به‌زودی در این بخش قرار می‌گیرد."
+        await query.edit_message_text(
+            """
+🌍 تجارت بین‌الملل
+آموزش مفاهیم کاربردی تجارت خارجی، اسناد، قراردادها، حمل‌ونقل، پرداخت‌ها و اینکوترمز.
+👇 موضوع موردنظر خود را انتخاب کنید:
+""",
+            reply_markup=trade_menu()
         )
         return
+    # =====================================================
+    # TRADE BASICS
+    # =====================================================
+    if data == "trade_basics":
+        await query.edit_message_text(
+            trade_basics_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE DOCUMENTS
+    # =====================================================
+    if data == "trade_documents":
+        await query.edit_message_text(
+            trade_documents_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE LOGISTICS
+    # =====================================================
+    if data == "trade_logistics":
+        await query.edit_message_text(
+            trade_logistics_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE PAYMENT
+    # =====================================================
+    if data == "trade_payment":
+        await query.edit_message_text(
+            trade_payment_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE INCOTERMS
+    # =====================================================
+    if data == "trade_incoterms":
+        await query.edit_message_text(
+            trade_incoterms_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE LAWS
+    # =====================================================
+    if data == "trade_laws":
+        await query.edit_message_text(
+            trade_laws_text(),
+            reply_markup=trade_lesson_menu()
+        )
+        return
+    # =====================================================
+    # TRADE EXAM
+    # =====================================================
+    if data == "trade_exam":
+        text, keyboard = trade_exam_question(
+            0,
+            0
+        )
+        await query.edit_message_text(
+            text,
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # TRADE EXAM ANSWERS
+    # =====================================================
+    if data.startswith("trade_answer_"):
+        parts = data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+        question = TRADE_QUESTIONS[
+            question_index
+        ]
+        if selected_answer == question["correct"]:
+            score += 1
+            result = "✅ پاسخ صحیح است!"
+        else:
+            correct_answer = question["options"][
+                question["correct"]
+            ]
+            result = (
+                "❌ پاسخ اشتباه است.\n\n"
+                f"پاسخ صحیح: {correct_answer}"
+            )
+        next_question = question_index + 1
+        if next_question >= len(TRADE_QUESTIONS):
+            await query.edit_message_text(
+                f"""
+🏆 آزمون تجارت بین‌الملل به پایان رسید!
+⭐ امتیاز شما:
+{score} از {len(TRADE_QUESTIONS)}
+{result}
+""",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "🔄 شروع مجدد",
+                                callback_data="trade_exam"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🔙 تجارت بین‌الملل",
+                                callback_data="trade"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🏠 منوی اصلی",
+                                callback_data="home"
+                            )
+                        ],
+                    ]
+                )
+            )
+            return
+        text, keyboard = trade_exam_question(
+            next_question,
+            score
+        )
+        await query.edit_message_text(
+            f"""
+{result}
+{text}
+""",
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # OTHER MAIN SECTIONS
+    # =====================================================
     if data == "marketing":
         await generic_message(
             query,
@@ -463,7 +603,7 @@ async def button_handler(
         )
         return
     # =====================================================
-    # FUTURE MANAGEMENT SECTIONS
+    # FUTURE MANAGEMENT
     # =====================================================
     if data == "organizational_behavior":
         await generic_message(
@@ -487,7 +627,7 @@ async def button_handler(
         )
         return
     # =====================================================
-    # UNKNOWN CALLBACK
+    # UNKNOWN
     # =====================================================
     await query.edit_message_text(
         """
@@ -506,6 +646,31 @@ async def button_handler(
         )
     )
 # =========================================================
+# TRADE LESSON MENU
+# =========================================================
+def trade_lesson_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📝 آزمون تجارت بین‌الملل",
+                callback_data="trade_exam"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 تجارت بین‌الملل",
+                callback_data="trade"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+# =========================================================
 # MAIN
 # =========================================================
 def main():
@@ -513,7 +678,7 @@ def main():
         raise ValueError(
             "BOT_TOKEN تنظیم نشده است."
         )
-    # Start Flask server
+    # Flask server
     Thread(
         target=run_flask,
         daemon=True
@@ -538,13 +703,13 @@ def main():
             help_command
         )
     )
-    # Callback buttons
+    # Callback handler
     telegram_app.add_handler(
         CallbackQueryHandler(
             button_handler
         )
     )
-    # Start bot
+    # Start polling
     telegram_app.run_polling(
         drop_pending_updates=True
     )
