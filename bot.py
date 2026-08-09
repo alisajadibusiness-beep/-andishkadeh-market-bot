@@ -1,5 +1,10 @@
 # bot.py
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+import os
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -7,7 +12,7 @@ from telegram.ext import (
     ContextTypes,
 )
 # =========================================================
-#              Import بخش‌های آموزشی
+# Imports
 # =========================================================
 from banking import (
     banking_menu,
@@ -28,18 +33,19 @@ from banking import (
     banking_quiz_question,
     BANKING_QUESTIONS,
 )
-# =========================================================
-#              شبکه‌های اجتماعی
-# =========================================================
 from social import (
     social_callback,
 )
 # =========================================================
-#              تنظیمات ربات
+# Bot Token
 # =========================================================
-
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN environment variable is not set."
+    )
 # =========================================================
-#              منوی اصلی
+# Main Menu
 # =========================================================
 def main_menu():
     keyboard = [
@@ -64,7 +70,7 @@ def main_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-#              متن منوی اصلی
+# Main Menu Text
 # =========================================================
 def main_menu_text():
     return """
@@ -86,18 +92,19 @@ def main_menu_text():
 👇 بخش موردنظر خود را انتخاب کنید:
 """
 # =========================================================
-#              دستور /start
+# /start
 # =========================================================
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-    await update.message.reply_text(
-        main_menu_text(),
-        reply_markup=main_menu()
-    )
+    if update.message:
+        await update.message.reply_text(
+            main_menu_text(),
+            reply_markup=main_menu()
+        )
 # =========================================================
-#              بازگشت به منوی اصلی
+# Home
 # =========================================================
 async def home_callback(
     update: Update,
@@ -110,7 +117,7 @@ async def home_callback(
         reply_markup=main_menu()
     )
 # =========================================================
-#              منوی آزمون و تست
+# Exams Menu
 # =========================================================
 def exams_menu():
     keyboard = [
@@ -153,7 +160,7 @@ def exams_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-#              متن آزمون و تست
+# Exams Text
 # =========================================================
 def exams_text():
     return """
@@ -203,77 +210,7 @@ async def exams_callback(
         reply_markup=exams_menu()
     )
 # =========================================================
-#              ورود به بانکداری
-# =========================================================
-async def exam_banking_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        banking_intro_text(),
-        reply_markup=banking_menu()
-    )
-# =========================================================
-#              بخش‌های در حال توسعه
-# =========================================================
-async def future_exam_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-    query = update.callback_query
-    await query.answer()
-    titles = {
-        "exam_management":
-            "📚 آزمون مدیریت",
-        "exam_trade":
-            "🌍 آزمون تجارت",
-        "exam_marketing":
-            "📈 آزمون بازاریابی",
-        "exam_economics":
-            "💰 آزمون اقتصاد",
-    }
-    title = titles.get(
-        query.data,
-        "🎓 آزمون"
-    )
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🔙 آزمون و تست",
-                callback_data="exams"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🏠 منوی اصلی",
-                callback_data="home"
-            )
-        ],
-    ]
-    await query.edit_message_text(
-        f"""
-{title}
-━━━━━━━━━━━━━━━━━━
-🚧 این بخش در حال توسعه است.
-به‌زودی موارد زیر اضافه می‌شوند:
-📖 درسنامه تخصصی
-📝 تست موضوعی
-🏆 آزمون جامع
-📊 محاسبه درصد
-🎯 تعیین سطح
-🔄 تکرار آزمون
-📚 تحلیل پاسخ‌های اشتباه
-━━━━━━━━━━━━━━━━━━
-🏛️ اندیشکده مدیریت و بازار
-""",
-        reply_markup=InlineKeyboardMarkup(
-            keyboard
-        )
-    )
-# =========================================================
-#              منوی بانکداری
+# Banking
 # =========================================================
 async def banking_callback(
     update: Update,
@@ -286,7 +223,7 @@ async def banking_callback(
         reply_markup=banking_menu()
     )
 # =========================================================
-#              درسنامه‌های بانکداری
+# Banking Lessons
 # =========================================================
 BANKING_LESSONS = {
     "banking_basics":
@@ -321,15 +258,15 @@ async def banking_lesson_callback(
     query = update.callback_query
     await query.answer()
     data = query.data
-    if data not in BANKING_LESSONS:
+    lesson_function = BANKING_LESSONS.get(data)
+    if not lesson_function:
         return
-    lesson_function = BANKING_LESSONS[data]
     await query.edit_message_text(
         lesson_function(),
         reply_markup=banking_back_menu()
     )
 # =========================================================
-#              تست تخصصی بانکداری
+# Banking Quiz Start
 # =========================================================
 async def banking_quiz_start(
     update: Update,
@@ -346,7 +283,7 @@ async def banking_quiz_start(
         reply_markup=keyboard
     )
 # =========================================================
-#              پاسخ تست بانکداری
+# Banking Quiz Answer
 # =========================================================
 async def banking_answer_callback(
     update: Update,
@@ -354,16 +291,35 @@ async def banking_answer_callback(
 ):
     query = update.callback_query
     await query.answer()
-    parts = query.data.split("_")
-    question_index = int(parts[2])
-    selected_answer = int(parts[3])
-    score = int(parts[4])
+    try:
+        parts = query.data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+    except (
+        ValueError,
+        IndexError,
+    ):
+        await query.edit_message_text(
+            "❌ خطایی در پردازش پاسخ رخ داد.",
+            reply_markup=banking_back_menu()
+        )
+        return
+    if question_index >= len(BANKING_QUESTIONS):
+        await query.edit_message_text(
+            "❌ سؤال موردنظر پیدا نشد.",
+            reply_markup=banking_back_menu()
+        )
+        return
     question = BANKING_QUESTIONS[
         question_index
     ]
+    # -----------------------------------------------------
+    # Check Answer
+    # -----------------------------------------------------
     if selected_answer == question["correct"]:
         score += 1
-        result = "✅ پاسخ صحیح است!"
+        result = "✅ پاسخ صحیح است."
     else:
         correct_answer = question["options"][
             question["correct"]
@@ -372,9 +328,12 @@ async def banking_answer_callback(
             "❌ پاسخ اشتباه است.\n\n"
             f"✅ پاسخ صحیح: {correct_answer}"
         )
+    # -----------------------------------------------------
+    # Next Question
+    # -----------------------------------------------------
     next_question = question_index + 1
     # -----------------------------------------------------
-    # پایان آزمون
+    # Exam Finished
     # -----------------------------------------------------
     if next_question >= len(
         BANKING_QUESTIONS
@@ -383,7 +342,7 @@ async def banking_answer_callback(
             BANKING_QUESTIONS
         )
         percentage = int(
-            score / total * 100
+            (score / total) * 100
         )
         if percentage >= 90:
             level = "🔥 فوق‌العاده"
@@ -429,6 +388,7 @@ async def banking_answer_callback(
 📚 پیشنهاد:
 پاسخ‌های اشتباه خود را مرور کنید و
 مبحث مربوطه را دوباره مطالعه کنید.
+🏛️ اندیشکده مدیریت و بازار
 """,
             reply_markup=InlineKeyboardMarkup(
                 keyboard
@@ -436,7 +396,7 @@ async def banking_answer_callback(
         )
         return
     # -----------------------------------------------------
-    # سؤال بعدی
+    # Show Next Question
     # -----------------------------------------------------
     text, keyboard = banking_quiz_question(
         index=next_question,
@@ -451,13 +411,70 @@ async def banking_answer_callback(
         reply_markup=keyboard
     )
 # =========================================================
-#              ثبت Handlerها
+# Future Exams
+# =========================================================
+async def future_exam_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    query = update.callback_query
+    await query.answer()
+    titles = {
+        "exam_management":
+            "📚 آزمون مدیریت",
+        "exam_trade":
+            "🌍 آزمون تجارت",
+        "exam_marketing":
+            "📈 آزمون بازاریابی",
+        "exam_economics":
+            "💰 آزمون اقتصاد",
+    }
+    title = titles.get(
+        query.data,
+        "🎓 آزمون"
+    )
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🔙 آزمون و تست",
+                callback_data="exams"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    await query.edit_message_text(
+        f"""
+{title}
+━━━━━━━━━━━━━━━━━━
+🚧 این بخش در حال توسعه است.
+به‌زودی اضافه می‌شود:
+📖 درسنامه تخصصی
+📝 تست موضوعی
+🏆 آزمون جامع
+📊 محاسبه درصد
+🎯 تعیین سطح
+🔄 تکرار آزمون
+📚 تحلیل پاسخ‌های اشتباه
+━━━━━━━━━━━━━━━━━━
+🏛️ اندیشکده مدیریت و بازار
+""",
+        reply_markup=InlineKeyboardMarkup(
+            keyboard
+        )
+    )
+# =========================================================
+# Register Handlers
 # =========================================================
 def register_handlers(
     application
 ):
     # -----------------------------------------------------
-    # منوی اصلی
+    # Home
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -466,7 +483,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # آزمون و تست
+    # Exams
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -475,14 +492,8 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # ورود به بانکداری
+    # Banking
     # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            exam_banking_callback,
-            pattern=r"^exam_banking$"
-        )
-    )
     application.add_handler(
         CallbackQueryHandler(
             banking_callback,
@@ -490,19 +501,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # آزمون‌های آینده
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            future_exam_callback,
-            pattern=(
-                r"^exam_"
-                r"(management|trade|marketing|economics)$"
-            )
-        )
-    )
-    # -----------------------------------------------------
-    # درسنامه‌های بانکداری
+    # Banking Lessons
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -516,7 +515,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # تست تخصصی
+    # Banking Quiz
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -525,7 +524,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # پاسخ تست
+    # Banking Answers
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -534,7 +533,19 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # شبکه‌های اجتماعی
+    # Future Exams
+    # -----------------------------------------------------
+    application.add_handler(
+        CallbackQueryHandler(
+            future_exam_callback,
+            pattern=(
+                r"^exam_"
+                r"(management|trade|marketing|economics)$"
+            )
+        )
+    )
+    # -----------------------------------------------------
+    # Social Media
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -543,7 +554,7 @@ def register_handlers(
         )
     )
 # =========================================================
-#              اجرای ربات
+# Main
 # =========================================================
 def main():
     application = (
@@ -553,7 +564,7 @@ def main():
         .build()
     )
     # -----------------------------------------------------
-    # دستور /start
+    # /start
     # -----------------------------------------------------
     application.add_handler(
         CommandHandler(
@@ -562,7 +573,7 @@ def main():
         )
     )
     # -----------------------------------------------------
-    # ثبت Handlerها
+    # Register callbacks
     # -----------------------------------------------------
     register_handlers(
         application
@@ -572,7 +583,7 @@ def main():
     )
     application.run_polling()
 # =========================================================
-#              شروع برنامه
+# Run
 # =========================================================
 if __name__ == "__main__":
     main()
