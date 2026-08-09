@@ -62,8 +62,32 @@ from economy import (
     economy_exam_question,
     ECONOMY_QUESTIONS,
 )
+from banking import (
+    banking_menu,
+    banking_lesson_menu,
+    bank_basics_text,
+    central_bank_text,
+    bank_deposits_text,
+    bank_facilities_text,
+    bank_contracts_text,
+    bank_documents_text,
+    aml_text,
+    cft_text,
+    bank_accounting_text,
+    international_banking_text,
+    electronic_banking_text,
+    bank_exam_tips_text,
+    bank_exam_question,
+    BANK_QUESTIONS,
+)
+# =========================================================
+# SETTINGS
+# =========================================================
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 10000))
+# =========================================================
+# FLASK
+# =========================================================
 app = Flask(__name__)
 @app.route("/")
 def home():
@@ -73,6 +97,9 @@ def run_flask():
         host="0.0.0.0",
         port=PORT
     )
+# =========================================================
+# MAIN MENU
+# =========================================================
 def main_menu():
     keyboard = [
         [
@@ -117,6 +144,9 @@ def main_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# START
+# =========================================================
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -136,6 +166,9 @@ async def start(
         text,
         reply_markup=main_menu()
     )
+# =========================================================
+# HELP
+# =========================================================
 async def help_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -149,6 +182,9 @@ async def help_command(
 نمایش راهنما
 """
     )
+# =========================================================
+# MANAGEMENT MENU
+# =========================================================
 async def show_management(query):
     keyboard = [
         [
@@ -190,6 +226,9 @@ async def show_management(query):
 """,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
+# =========================================================
+# TRADE LESSON MENU
+# =========================================================
 def trade_lesson_menu():
     keyboard = [
         [
@@ -212,6 +251,9 @@ def trade_lesson_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# MARKETING LESSON MENU
+# =========================================================
 def marketing_lesson_menu():
     keyboard = [
         [
@@ -234,6 +276,9 @@ def marketing_lesson_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# GENERIC MESSAGE
+# =========================================================
 async def generic_message(
     query,
     title,
@@ -254,6 +299,20 @@ async def generic_message(
 """,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
+# =========================================================
+# BANKING LESSON
+# =========================================================
+async def show_banking_lesson(
+    query,
+    text
+):
+    await query.edit_message_text(
+        text,
+        reply_markup=banking_lesson_menu()
+    )
+# =========================================================
+# BUTTON HANDLER
+# =========================================================
 async def button_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -791,20 +850,175 @@ async def button_handler(
         )
         return
     # =====================================================
-    # OTHER SECTIONS
+    # BANKING
     # =====================================================
     if data == "banking":
-        await generic_message(
-            query,
-            "🏦 بانکداری",
-            "محتوای آموزشی بانکداری به‌زودی در این بخش قرار می‌گیرد."
+        await query.edit_message_text(
+            """
+🏦 بانکداری تخصصی
+دوره تخصصی بانکداری برای یادگیری مفاهیم بانکی و آمادگی آزمون‌های استخدامی بانک‌ها.
+📚 از مبانی تا عملیات بانکی، عقود، تسهیلات، پولشویی و بانکداری بین‌الملل.
+👇 موضوع موردنظر خود را انتخاب کنید:
+""",
+            reply_markup=banking_menu()
         )
         return
+    # -----------------------------------------------------
+    # Banking lessons
+    # -----------------------------------------------------
+    if data == "bank_basics":
+        await show_banking_lesson(
+            query,
+            bank_basics_text()
+        )
+        return
+    if data == "central_bank":
+        await show_banking_lesson(
+            query,
+            central_bank_text()
+        )
+        return
+    if data == "bank_deposits":
+        await show_banking_lesson(
+            query,
+            bank_deposits_text()
+        )
+        return
+    if data == "bank_facilities":
+        await show_banking_lesson(
+            query,
+            bank_facilities_text()
+        )
+        return
+    if data == "bank_contracts":
+        await show_banking_lesson(
+            query,
+            bank_contracts_text()
+        )
+        return
+    if data == "bank_documents":
+        await show_banking_lesson(
+            query,
+            bank_documents_text()
+        )
+        return
+    if data == "aml":
+        await show_banking_lesson(
+            query,
+            aml_text()
+        )
+        return
+    if data == "cft":
+        await show_banking_lesson(
+            query,
+            cft_text()
+        )
+        return
+    if data == "bank_accounting":
+        await show_banking_lesson(
+            query,
+            bank_accounting_text()
+        )
+        return
+    if data == "international_banking":
+        await show_banking_lesson(
+            query,
+            international_banking_text()
+        )
+        return
+    if data == "electronic_banking":
+        await show_banking_lesson(
+            query,
+            electronic_banking_text()
+        )
+        return
+    if data == "bank_exam_tips":
+        await show_banking_lesson(
+            query,
+            bank_exam_tips_text()
+        )
+        return
+    # =====================================================
+    # BANKING EXAM
+    # =====================================================
+    if data == "bank_exam":
+        text, keyboard = bank_exam_question(0, 0)
+        await query.edit_message_text(
+            text,
+            reply_markup=keyboard
+        )
+        return
+    if data.startswith("bank_answer_"):
+        parts = data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+        question = BANK_QUESTIONS[question_index]
+        if selected_answer == question["correct"]:
+            score += 1
+            result = "✅ پاسخ صحیح است!"
+        else:
+            correct_answer = question["options"][
+                question["correct"]
+            ]
+            result = (
+                "❌ پاسخ اشتباه است.\n\n"
+                f"پاسخ صحیح: {correct_answer}"
+            )
+        next_question = question_index + 1
+        if next_question >= len(BANK_QUESTIONS):
+            await query.edit_message_text(
+                f"""
+🏆 آزمون تخصصی بانکداری به پایان رسید!
+⭐ امتیاز شما:
+{score} از {len(BANK_QUESTIONS)}
+{result}
+📌 برای یادگیری بیشتر، بخش‌های آموزشی بانکداری را مطالعه کنید.
+""",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "🔄 آزمون مجدد",
+                                callback_data="bank_exam"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🏦 بانکداری تخصصی",
+                                callback_data="banking"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🏠 منوی اصلی",
+                                callback_data="home"
+                            )
+                        ],
+                    ]
+                )
+            )
+            return
+        text, keyboard = bank_exam_question(
+            next_question,
+            score
+        )
+        await query.edit_message_text(
+            f"""
+{result}
+{text}
+""",
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # OTHER SECTIONS
+    # =====================================================
     if data == "exam":
         await generic_message(
             query,
             "🎓 آزمون و تست",
-            "بخش آزمون‌های تخصصی به‌زودی فعال می‌شود."
+            "آزمون‌های تخصصی هر بخش از منوی همان بخش قابل دسترسی هستند."
         )
         return
     if data == "files":
@@ -819,8 +1033,11 @@ async def button_handler(
             query,
             "📱 شبکه‌های اجتماعی",
             """
-📱 شبکه‌های اجتماعی اندیشکده مدیریت و بازار
-برای دنبال کردن محتوای جدید، صفحات رسمی اندیشکده را دنبال کنید.
+برای دنبال کردن محتوای جدید:
+📸 اینستاگرام
+▶️ یوتیوب
+📱 تلگرام
+اندیشکده مدیریت و بازار
 """
         )
         return
@@ -845,6 +1062,9 @@ async def button_handler(
             "محتوای مدیریت منابع انسانی به‌زودی اضافه می‌شود."
         )
         return
+    # =====================================================
+    # UNKNOWN
+    # =====================================================
     await query.edit_message_text(
         """
 ❌ گزینه موردنظر پیدا نشد.
@@ -861,6 +1081,9 @@ async def button_handler(
             ]
         )
     )
+# =========================================================
+# MAIN
+# =========================================================
 def main():
     if not TOKEN:
         raise ValueError(
