@@ -8,6 +8,9 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes,
 )
+# =========================================================
+# MANAGEMENT
+# =========================================================
 from management import (
     management_basics_menu,
     management_definition_text,
@@ -22,6 +25,9 @@ from management import (
     exam_question,
     QUESTIONS,
 )
+# =========================================================
+# TRADE
+# =========================================================
 from trade import (
     trade_menu,
     trade_basics_text,
@@ -33,6 +39,9 @@ from trade import (
     trade_exam_question,
     TRADE_QUESTIONS,
 )
+# =========================================================
+# MARKETING
+# =========================================================
 from marketing import (
     marketing_menu,
     marketing_basics_text,
@@ -47,6 +56,9 @@ from marketing import (
     marketing_exam_question,
     MARKETING_QUESTIONS,
 )
+# =========================================================
+# ECONOMY
+# =========================================================
 from economy import (
     economy_menu,
     economy_lesson_menu,
@@ -62,47 +74,59 @@ from economy import (
     economy_exam_question,
     ECONOMY_QUESTIONS,
 )
+# =========================================================
+# BANKING
+# =========================================================
 from banking import (
-    banking_text,
     banking_menu,
+    banking_intro_text,
     banking_basics_text,
     banking_deposits_text,
     banking_facilities_text,
     banking_contracts_text,
+    banking_laws_text,
     banking_checks_text,
+    banking_aml_text,
     banking_credit_text,
     banking_electronic_text,
-    banking_laws_text,
-    banking_aml_text,
     banking_risk_text,
-    banking_exam_text,
-)
-from employment import (
-    employment_banks_text,
-    employment_menu,
-    employment_bank_text,
-    employment_subjects_text,
-    employment_interview_text,
-    employment_iq_text,
-    employment_english_text,
-    employment_full_exam_text,
+    banking_central_text,
+    banking_islamic_text,
+    banking_quiz_question,
+    banking_full_exam_text,
+    BANKING_QUESTIONS,
 )
 # =========================================================
-# SETTINGS
+# EMPLOYMENT
+# =========================================================
+try:
+    from employment import (
+        employment_menu,
+        employment_banks_text,
+        employment_bank_text,
+        employment_subjects_text,
+        employment_interview_text,
+        employment_iq_text,
+        employment_english_text,
+        employment_full_exam_text,
+        employment_bank_menu,
+    )
+    EMPLOYMENT_AVAILABLE = True
+except ImportError:
+    EMPLOYMENT_AVAILABLE = False
+# =========================================================
+# SERVER
 # =========================================================
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 10000))
 app = Flask(__name__)
-# =========================================================
-# RENDER HEALTH CHECK
-# =========================================================
 @app.route("/")
 def home():
     return "Andishkadeh Market Bot is running."
 def run_flask():
     app.run(
         host="0.0.0.0",
-        port=PORT
+        port=PORT,
     )
 # =========================================================
 # MAIN MENU
@@ -131,7 +155,7 @@ def main_menu():
         ],
         [
             InlineKeyboardButton(
-                "🏦 بانکداری",
+                "🏦 بانکداری تخصصی",
                 callback_data="banking"
             ),
             InlineKeyboardButton(
@@ -143,7 +167,7 @@ def main_menu():
             InlineKeyboardButton(
                 "🏆 آزمون‌های استخدامی",
                 callback_data="employment"
-            )
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -158,49 +182,6 @@ def main_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-# SAFE MESSAGE SYSTEM
-# =========================================================
-TELEGRAM_SAFE_LIMIT = 3800
-def split_text(text, limit=TELEGRAM_SAFE_LIMIT):
-    parts = []
-    while len(text) > limit:
-        split_at = text.rfind("\n", 0, limit)
-        if split_at <= 0:
-            split_at = text.rfind(" ", 0, limit)
-        if split_at <= 0:
-            split_at = limit
-        parts.append(text[:split_at].strip())
-        text = text[split_at:].lstrip()
-    if text.strip():
-        parts.append(text.strip())
-    return parts
-async def send_safe_message(
-    query,
-    text,
-    reply_markup=None
-):
-    parts = split_text(text)
-    if not parts:
-        return
-    await query.edit_message_text(
-        parts[0],
-        reply_markup=(
-            reply_markup
-            if len(parts) == 1
-            else None
-        )
-    )
-    for i, part in enumerate(parts[1:]):
-        is_last = i == len(parts[1:]) - 1
-        await query.message.reply_text(
-            part,
-            reply_markup=(
-                reply_markup
-                if is_last
-                else None
-            )
-        )
-# =========================================================
 # START
 # =========================================================
 async def start(
@@ -214,8 +195,9 @@ async def start(
 🌍 تجارت بین‌الملل
 📈 بازاریابی و فروش
 💰 اقتصاد و بازار
-🏦 بانکداری
-🏆 آزمون‌های استخدامی بانک‌ها
+🏦 بانکداری تخصصی
+🏆 آزمون‌های استخدامی
+🎓 آزمون و منابع آموزشی
 👇 موضوع موردنظر خود را انتخاب کنید:
 """
     await update.message.reply_text(
@@ -236,12 +218,11 @@ async def help_command(
 نمایش منوی اصلی
 /help
 نمایش راهنما
-🎓 اندیشکده مدیریت و بازار
-آموزش + آزمون + آمادگی شغلی
+برای شروع از منوی اصلی یک موضوع را انتخاب کنید.
 """
     )
 # =========================================================
-# MANAGEMENT
+# MANAGEMENT MENU
 # =========================================================
 async def show_management(query):
     keyboard = [
@@ -285,7 +266,7 @@ async def show_management(query):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 # =========================================================
-# TRADE MENU
+# TRADE LESSON MENU
 # =========================================================
 def trade_lesson_menu():
     keyboard = [
@@ -310,7 +291,7 @@ def trade_lesson_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-# MARKETING MENU
+# MARKETING LESSON MENU
 # =========================================================
 def marketing_lesson_menu():
     keyboard = [
@@ -350,14 +331,70 @@ async def generic_message(
             )
         ]
     ]
-    await send_safe_message(
-        query,
+    await query.edit_message_text(
         f"""
 {title}
 {description}
 """,
-        InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
+# =========================================================
+# BANKING LESSON MENU
+# =========================================================
+def banking_lesson_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🔙 بانکداری تخصصی",
+                callback_data="banking"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# BANKING QUIZ RESULT
+# =========================================================
+def banking_quiz_result_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🔄 شروع مجدد",
+                callback_data="banking_quiz"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🔙 بانکداری تخصصی",
+                callback_data="banking"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+# =========================================================
+# EMPLOYMENT SAFE MENU
+# =========================================================
+def employment_fallback_menu():
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home"
+            )
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 # =========================================================
 # BUTTON HANDLER
 # =========================================================
@@ -397,52 +434,45 @@ async def button_handler(
         )
         return
     if data == "management_definition":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_definition_text(),
-            management_definition_menu()
+            reply_markup=management_definition_menu()
         )
         return
     if data == "management_functions":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_functions_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "management_levels":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_levels_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "management_roles":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_roles_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "management_skills":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_skills_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "efficiency_effectiveness":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             efficiency_effectiveness_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "management_schools":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             management_schools_text(),
-            lesson_menu()
+            reply_markup=lesson_menu()
         )
         return
     if data == "management_basics_exam":
@@ -521,52 +551,46 @@ async def button_handler(
         await query.edit_message_text(
             """
 🌍 تجارت بین‌الملل
-آموزش مفاهیم کاربردی تجارت خارجی، اسناد، حمل‌ونقل، پرداخت‌ها و اینکوترمز.
+آموزش مفاهیم کاربردی تجارت خارجی، اسناد، حمل‌ونقل، پرداخت‌ها، قراردادها و اینکوترمز.
 👇 موضوع موردنظر خود را انتخاب کنید:
 """,
             reply_markup=trade_menu()
         )
         return
     if data == "trade_basics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_basics_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_documents":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_documents_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_logistics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_logistics_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_payment":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_payment_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_incoterms":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_incoterms_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_laws":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             trade_laws_text(),
-            trade_lesson_menu()
+            reply_markup=trade_lesson_menu()
         )
         return
     if data == "trade_exam":
@@ -652,66 +676,57 @@ async def button_handler(
         )
         return
     if data == "marketing_basics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             marketing_basics_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "consumer_behavior":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             consumer_behavior_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "market_research":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             market_research_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "marketing_4p":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             marketing_4p_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "marketing_stp":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             marketing_stp_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "marketing_branding":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             marketing_branding_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "sales_negotiation":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             sales_negotiation_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "sales_funnel":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             sales_funnel_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "digital_marketing":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             digital_marketing_text(),
-            marketing_lesson_menu()
+            reply_markup=marketing_lesson_menu()
         )
         return
     if data == "marketing_exam":
@@ -797,66 +812,57 @@ async def button_handler(
         )
         return
     if data == "economy_basics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             economy_basics_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "supply_demand":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             supply_demand_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "inflation":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             inflation_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "exchange_rate":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             exchange_rate_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "monetary_policy":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             monetary_policy_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "fiscal_policy":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             fiscal_policy_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "macroeconomics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             macroeconomics_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "microeconomics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             microeconomics_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "capital_market":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             capital_market_text(),
-            economy_lesson_menu()
+            reply_markup=economy_lesson_menu()
         )
         return
     if data == "economy_exam":
@@ -932,132 +938,242 @@ async def button_handler(
     # BANKING
     # =====================================================
     if data == "banking":
-        await send_safe_message(
-            query,
-            banking_text(),
-            banking_menu()
+        await query.edit_message_text(
+            banking_intro_text(),
+            reply_markup=banking_menu()
         )
         return
     if data == "banking_basics":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_basics_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_deposits":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_deposits_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_facilities":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_facilities_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_contracts":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_contracts_text(),
-            banking_menu()
-        )
-        return
-    if data == "banking_checks":
-        await send_safe_message(
-            query,
-            banking_checks_text(),
-            banking_menu()
-        )
-        return
-    if data == "banking_credit":
-        await send_safe_message(
-            query,
-            banking_credit_text(),
-            banking_menu()
-        )
-        return
-    if data == "banking_electronic":
-        await send_safe_message(
-            query,
-            banking_electronic_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_laws":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_laws_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
+        )
+        return
+    if data == "banking_checks":
+        await query.edit_message_text(
+            banking_checks_text(),
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_aml":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_aml_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
+        )
+        return
+    if data == "banking_credit":
+        await query.edit_message_text(
+            banking_credit_text(),
+            reply_markup=banking_lesson_menu()
+        )
+        return
+    if data == "banking_electronic":
+        await query.edit_message_text(
+            banking_electronic_text(),
+            reply_markup=banking_lesson_menu()
         )
         return
     if data == "banking_risk":
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             banking_risk_text(),
-            banking_menu()
+            reply_markup=banking_lesson_menu()
         )
         return
-    if data == "banking_exam":
-        await send_safe_message(
-            query,
-            banking_exam_text(),
-            banking_menu()
+    if data == "banking_central":
+        await query.edit_message_text(
+            banking_central_text(),
+            reply_markup=banking_lesson_menu()
+        )
+        return
+    if data == "banking_islamic":
+        await query.edit_message_text(
+            banking_islamic_text(),
+            reply_markup=banking_lesson_menu()
+        )
+        return
+    # =====================================================
+    # BANKING QUIZ
+    # =====================================================
+    if data == "banking_quiz":
+        text, keyboard = banking_quiz_question(
+            0,
+            0
+        )
+        await query.edit_message_text(
+            text,
+            reply_markup=keyboard
+        )
+        return
+    if data.startswith("banking_answer_"):
+        parts = data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+        question = BANKING_QUESTIONS[
+            question_index
+        ]
+        if selected_answer == question["correct"]:
+            score += 1
+            result = "✅ پاسخ صحیح است!"
+        else:
+            correct_answer = question["options"][
+                question["correct"]
+            ]
+            result = (
+                "❌ پاسخ اشتباه است.\n\n"
+                f"پاسخ صحیح: {correct_answer}"
+            )
+        next_question = question_index + 1
+        if next_question >= len(BANKING_QUESTIONS):
+            await query.edit_message_text(
+                f"""
+🏆 آزمون تخصصی بانکداری به پایان رسید!
+⭐ امتیاز شما:
+{score} از {len(BANKING_QUESTIONS)}
+{result}
+""",
+                reply_markup=banking_quiz_result_menu()
+            )
+            return
+        text, keyboard = banking_quiz_question(
+            next_question,
+            score
+        )
+        await query.edit_message_text(
+            f"""
+{result}
+{text}
+""",
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # BANKING FULL EXAM
+    # =====================================================
+    if data == "banking_full_exam":
+        await query.edit_message_text(
+            banking_full_exam_text(),
+            reply_markup=banking_lesson_menu()
         )
         return
     # =====================================================
     # EMPLOYMENT
     # =====================================================
     if data == "employment":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🏆 آزمون‌های استخدامی بانک‌ها",
+                "فایل employment.py هنوز در پروژه قرار نگرفته است."
+            )
+            return
+        await query.edit_message_text(
             employment_banks_text(),
-            employment_menu()
+            reply_markup=employment_menu()
         )
         return
+    # =====================================================
+    # EMPLOYMENT SUBJECTS
+    # =====================================================
     if data == "employment_subjects":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "📚 دروس و منابع",
+                "بخش منابع استخدامی هنوز فعال نشده است."
+            )
+            return
+        await query.edit_message_text(
             employment_subjects_text(),
-            employment_menu()
+            reply_markup=employment_fallback_menu()
         )
         return
+    # =====================================================
+    # EMPLOYMENT INTERVIEW
+    # =====================================================
     if data == "employment_interview":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🎤 مصاحبه استخدامی",
+                "بخش مصاحبه هنوز فعال نشده است."
+            )
+            return
+        await query.edit_message_text(
             employment_interview_text(),
-            employment_menu()
+            reply_markup=employment_fallback_menu()
         )
         return
+    # =====================================================
+    # EMPLOYMENT IQ
+    # =====================================================
     if data == "employment_iq":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🧠 آزمون هوش",
+                "بخش آزمون هوش هنوز فعال نشده است."
+            )
+            return
+        await query.edit_message_text(
             employment_iq_text(),
-            employment_menu()
+            reply_markup=employment_fallback_menu()
         )
         return
+    # =====================================================
+    # EMPLOYMENT ENGLISH
+    # =====================================================
     if data == "employment_english":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🇬🇧 زبان انگلیسی",
+                "بخش زبان هنوز فعال نشده است."
+            )
+            return
+        await query.edit_message_text(
             employment_english_text(),
-            employment_menu()
+            reply_markup=employment_fallback_menu()
         )
         return
+    # =====================================================
+    # EMPLOYMENT FULL EXAM
+    # =====================================================
     if data == "employment_full_exam":
-        await send_safe_message(
-            query,
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🏆 آزمون جامع استخدامی",
+                "بخش آزمون جامع هنوز فعال نشده است."
+            )
+            return
+        await query.edit_message_text(
             employment_full_exam_text(),
-            employment_menu()
+            reply_markup=employment_fallback_menu()
         )
         return
     # =====================================================
@@ -1076,11 +1192,106 @@ async def button_handler(
         "employment_mehr": "بانک قرض‌الحسنه مهر ایران",
     }
     if data in employment_banks:
+        if not EMPLOYMENT_AVAILABLE:
+            await generic_message(
+                query,
+                "🏦 آزمون استخدامی بانک",
+                "بخش استخدامی هنوز فعال نشده است."
+            )
+            return
         bank_name = employment_banks[data]
-        await send_safe_message(
-            query,
+        await query.edit_message_text(
             employment_bank_text(bank_name),
-            employment_menu()
+            reply_markup=employment_bank_menu(bank_name)
+        )
+        return
+    # =====================================================
+    # EMPLOYMENT BANK SUBMENU
+    # =====================================================
+    if data.startswith("bank_lesson_"):
+        bank_name = data.replace(
+            "bank_lesson_",
+            ""
+        )
+        await query.edit_message_text(
+            f"""
+📖 درسنامه استخدامی
+🏦 {bank_name}
+درسنامه‌های تخصصی این بانک به‌صورت موضوعی ارائه خواهند شد.
+📚 محورهای اصلی:
+🏦 بانکداری
+⚖️ قوانین بانکی
+💰 اقتصاد
+📊 مدیریت
+🧾 حسابداری
+📈 مدیریت مالی
+🧠 هوش
+🇬🇧 زبان
+💻 ICDL
+""",
+            reply_markup=employment_fallback_menu()
+        )
+        return
+    if data.startswith("bank_questions_"):
+        bank_name = data.replace(
+            "bank_questions_",
+            ""
+        )
+        await query.edit_message_text(
+            f"""
+📝 نمونه سؤالات استخدامی
+🏦 {bank_name}
+بانک سؤال این بخش در حال توسعه است.
+هدف:
+🎯 سؤال‌های پرتکرار
+🧠 تست‌های مفهومی
+⏱️ تست‌های زمان‌دار
+📊 تحلیل پاسخ‌ها
+""",
+            reply_markup=employment_fallback_menu()
+        )
+        return
+    if data.startswith("bank_exam_"):
+        bank_name = data.replace(
+            "bank_exam_",
+            ""
+        )
+        await query.edit_message_text(
+            f"""
+⏱️ آزمون استخدامی
+🏦 {bank_name}
+آزمون شبیه‌ساز این بانک در حال آماده‌سازی است.
+این بخش در نسخه بعدی شامل:
+📝 سؤال‌های تخصصی
+🧠 هوش
+🇬🇧 زبان
+💻 ICDL
+⏱️ زمان‌بندی
+📊 تحلیل نتیجه
+خواهد بود.
+""",
+            reply_markup=employment_fallback_menu()
+        )
+        return
+    if data.startswith("bank_tips_"):
+        bank_name = data.replace(
+            "bank_tips_",
+            ""
+        )
+        await query.edit_message_text(
+            f"""
+🎯 نکات مهم استخدامی
+🏦 {bank_name}
+برای موفقیت در آزمون استخدامی:
+1️⃣ دفترچه رسمی آزمون را دقیق مطالعه کنید.
+2️⃣ منابع اعلام‌شده را اولویت‌بندی کنید.
+3️⃣ تست‌های سال‌های قبل را بررسی کنید.
+4️⃣ زمان پاسخ‌گویی را مدیریت کنید.
+5️⃣ اشتباهات خود را تحلیل کنید.
+6️⃣ قبل از آزمون اصلی چند آزمون شبیه‌ساز انجام دهید.
+⚠️ مواد امتحانی و شرایط استخدامی ممکن است در هر دوره تغییر کند.
+""",
+            reply_markup=employment_fallback_menu()
         )
         return
     # =====================================================
@@ -1091,8 +1302,13 @@ async def button_handler(
             query,
             "🎓 آزمون و تست",
             """
-آزمون‌های تخصصی اندیشکده در حال توسعه هستند.
-به‌زودی آزمون‌های موضوعی و جامع در بخش‌های مختلف فعال می‌شوند.
+آزمون‌های آموزشی اندیشکده در این بخش قرار می‌گیرند.
+📚 مدیریت
+🌍 تجارت
+📈 بازاریابی
+💰 اقتصاد
+🏦 بانکداری
+آزمون‌های تخصصی به‌مرور توسعه داده می‌شوند.
 """
         )
         return
@@ -1102,12 +1318,10 @@ async def button_handler(
             "📂 فایل و جزوات",
             """
 فایل‌ها و جزوات آموزشی در این بخش قرار خواهند گرفت.
-📚 جزوات مدیریت
-🌍 تجارت بین‌الملل
-📈 بازاریابی
-💰 اقتصاد
-🏦 بانکداری
-🏆 منابع آزمون استخدامی
+📚 جزوات
+📝 نمونه سؤالات
+📑 خلاصه دروس
+📊 منابع آزمون
 """
         )
         return
@@ -1117,8 +1331,7 @@ async def button_handler(
             "📱 شبکه‌های اجتماعی",
             """
 📱 شبکه‌های اجتماعی اندیشکده مدیریت و بازار
-برای دنبال کردن محتوای آموزشی جدید،
-صفحات رسمی اندیشکده را دنبال کنید.
+برای دنبال کردن محتوای جدید، صفحات رسمی اندیشکده را دنبال کنید.
 """
         )
         return
@@ -1200,8 +1413,5 @@ def main():
     telegram_app.run_polling(
         drop_pending_updates=True
     )
-# =========================================================
-# RUN
-# =========================================================
 if __name__ == "__main__":
     main()
