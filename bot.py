@@ -12,7 +12,7 @@ from telegram.ext import (
     ContextTypes,
 )
 # =========================================================
-# Imports
+# IMPORT BANKING
 # =========================================================
 from banking import (
     banking_menu,
@@ -33,11 +33,12 @@ from banking import (
     banking_quiz_question,
     BANKING_QUESTIONS,
 )
-from social import (
-    social_callback,
-)
 # =========================================================
-# Bot Token
+# IMPORT SOCIAL
+# =========================================================
+from social import social_callback
+# =========================================================
+# BOT TOKEN
 # =========================================================
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
@@ -45,7 +46,7 @@ if not TOKEN:
         "BOT_TOKEN environment variable is not set."
     )
 # =========================================================
-# Main Menu
+# MAIN MENU
 # =========================================================
 def main_menu():
     keyboard = [
@@ -70,7 +71,7 @@ def main_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-# Main Menu Text
+# MAIN MENU TEXT
 # =========================================================
 def main_menu_text():
     return """
@@ -92,7 +93,7 @@ def main_menu_text():
 👇 بخش موردنظر خود را انتخاب کنید:
 """
 # =========================================================
-# /start
+# START COMMAND
 # =========================================================
 async def start(
     update: Update,
@@ -104,7 +105,7 @@ async def start(
             reply_markup=main_menu()
         )
 # =========================================================
-# Home
+# HOME
 # =========================================================
 async def home_callback(
     update: Update,
@@ -117,7 +118,7 @@ async def home_callback(
         reply_markup=main_menu()
     )
 # =========================================================
-# Exams Menu
+# EXAMS MENU
 # =========================================================
 def exams_menu():
     keyboard = [
@@ -160,13 +161,12 @@ def exams_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 # =========================================================
-# Exams Text
+# EXAMS TEXT
 # =========================================================
 def exams_text():
     return """
 🎓 آزمون و تست
 مرکز تخصصی آزمون‌های اندیشکده مدیریت و بازار
-در این بخش می‌توانید با استفاده از آزمون‌های موضوعی و جامع، میزان یادگیری و آمادگی خود را ارزیابی کنید.
 ━━━━━━━━━━━━━━━━━━
 📚 مدیریت
 آزمون‌های تخصصی مدیریت و مدیریت بازرگانی
@@ -210,7 +210,7 @@ async def exams_callback(
         reply_markup=exams_menu()
     )
 # =========================================================
-# Banking
+# BANKING MENU
 # =========================================================
 async def banking_callback(
     update: Update,
@@ -223,7 +223,7 @@ async def banking_callback(
         reply_markup=banking_menu()
     )
 # =========================================================
-# Banking Lessons
+# BANKING LESSONS
 # =========================================================
 BANKING_LESSONS = {
     "banking_basics":
@@ -257,8 +257,9 @@ async def banking_lesson_callback(
 ):
     query = update.callback_query
     await query.answer()
-    data = query.data
-    lesson_function = BANKING_LESSONS.get(data)
+    lesson_function = BANKING_LESSONS.get(
+        query.data
+    )
     if not lesson_function:
         return
     await query.edit_message_text(
@@ -266,7 +267,7 @@ async def banking_lesson_callback(
         reply_markup=banking_back_menu()
     )
 # =========================================================
-# Banking Quiz Start
+# BANKING QUIZ START
 # =========================================================
 async def banking_quiz_start(
     update: Update,
@@ -283,7 +284,7 @@ async def banking_quiz_start(
         reply_markup=keyboard
     )
 # =========================================================
-# Banking Quiz Answer
+# BANKING QUIZ ANSWER
 # =========================================================
 async def banking_answer_callback(
     update: Update,
@@ -305,7 +306,9 @@ async def banking_answer_callback(
             reply_markup=banking_back_menu()
         )
         return
-    if question_index >= len(BANKING_QUESTIONS):
+    if question_index >= len(
+        BANKING_QUESTIONS
+    ):
         await query.edit_message_text(
             "❌ سؤال موردنظر پیدا نشد.",
             reply_markup=banking_back_menu()
@@ -315,7 +318,7 @@ async def banking_answer_callback(
         question_index
     ]
     # -----------------------------------------------------
-    # Check Answer
+    # CHECK ANSWER
     # -----------------------------------------------------
     if selected_answer == question["correct"]:
         score += 1
@@ -329,11 +332,11 @@ async def banking_answer_callback(
             f"✅ پاسخ صحیح: {correct_answer}"
         )
     # -----------------------------------------------------
-    # Next Question
+    # NEXT QUESTION
     # -----------------------------------------------------
     next_question = question_index + 1
     # -----------------------------------------------------
-    # Exam Finished
+    # FINISH EXAM
     # -----------------------------------------------------
     if next_question >= len(
         BANKING_QUESTIONS
@@ -396,7 +399,7 @@ async def banking_answer_callback(
         )
         return
     # -----------------------------------------------------
-    # Show Next Question
+    # NEXT QUESTION
     # -----------------------------------------------------
     text, keyboard = banking_quiz_question(
         index=next_question,
@@ -411,7 +414,7 @@ async def banking_answer_callback(
         reply_markup=keyboard
     )
 # =========================================================
-# Future Exams
+# FUTURE EXAMS
 # =========================================================
 async def future_exam_callback(
     update: Update,
@@ -468,13 +471,13 @@ async def future_exam_callback(
         )
     )
 # =========================================================
-# Register Handlers
+# REGISTER HANDLERS
 # =========================================================
 def register_handlers(
     application
 ):
     # -----------------------------------------------------
-    # Home
+    # HOME
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -483,7 +486,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Exams
+    # EXAMS
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -492,7 +495,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Banking
+    # BANKING
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -501,7 +504,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Banking Lessons
+    # BANKING LESSONS
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -515,7 +518,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Banking Quiz
+    # BANKING QUIZ
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -524,7 +527,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Banking Answers
+    # BANKING ANSWERS
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -533,7 +536,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Future Exams
+    # FUTURE EXAMS
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -545,7 +548,7 @@ def register_handlers(
         )
     )
     # -----------------------------------------------------
-    # Social Media
+    # SOCIAL MEDIA
     # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
@@ -554,7 +557,7 @@ def register_handlers(
         )
     )
 # =========================================================
-# Main
+# MAIN
 # =========================================================
 def main():
     application = (
@@ -564,7 +567,7 @@ def main():
         .build()
     )
     # -----------------------------------------------------
-    # /start
+    # START
     # -----------------------------------------------------
     application.add_handler(
         CommandHandler(
@@ -573,7 +576,7 @@ def main():
         )
     )
     # -----------------------------------------------------
-    # Register callbacks
+    # CALLBACK HANDLERS
     # -----------------------------------------------------
     register_handlers(
         application
@@ -583,7 +586,7 @@ def main():
     )
     application.run_polling()
 # =========================================================
-# Run
+# RUN
 # =========================================================
 if __name__ == "__main__":
     main()
