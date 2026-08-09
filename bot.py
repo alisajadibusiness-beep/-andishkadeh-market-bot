@@ -2,10 +2,12 @@ import os
 from flask import Flask
 from threading import Thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-# =========================================================
-# MANAGEMENT
-# =========================================================
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+)
 from management import (
     management_basics_menu,
     management_definition_text,
@@ -20,9 +22,6 @@ from management import (
     exam_question,
     QUESTIONS,
 )
-# =========================================================
-# INTERNATIONAL TRADE
-# =========================================================
 from trade import (
     trade_menu,
     trade_basics_text,
@@ -34,9 +33,6 @@ from trade import (
     trade_exam_question,
     TRADE_QUESTIONS,
 )
-# =========================================================
-# MARKETING
-# =========================================================
 from marketing import (
     marketing_menu,
     marketing_basics_text,
@@ -51,15 +47,24 @@ from marketing import (
     marketing_exam_question,
     MARKETING_QUESTIONS,
 )
-# =========================================================
-# SETTINGS
-# =========================================================
+from economy import (
+    economy_menu,
+    economy_lesson_menu,
+    economy_basics_text,
+    supply_demand_text,
+    inflation_text,
+    exchange_rate_text,
+    monetary_policy_text,
+    fiscal_policy_text,
+    macroeconomics_text,
+    microeconomics_text,
+    capital_market_text,
+    economy_exam_question,
+    ECONOMY_QUESTIONS,
+)
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 10000))
 app = Flask(__name__)
-# =========================================================
-# FLASK
-# =========================================================
 @app.route("/")
 def home():
     return "Andishkadeh Market Bot is running."
@@ -68,9 +73,6 @@ def run_flask():
         host="0.0.0.0",
         port=PORT
     )
-# =========================================================
-# MAIN MENU
-# =========================================================
 def main_menu():
     keyboard = [
         [
@@ -115,9 +117,6 @@ def main_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
-# =========================================================
-# START
-# =========================================================
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -137,9 +136,6 @@ async def start(
         text,
         reply_markup=main_menu()
     )
-# =========================================================
-# HELP
-# =========================================================
 async def help_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -153,9 +149,6 @@ async def help_command(
 نمایش راهنما
 """
     )
-# =========================================================
-# MANAGEMENT MENU
-# =========================================================
 async def show_management(query):
     keyboard = [
         [
@@ -197,9 +190,6 @@ async def show_management(query):
 """,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-# =========================================================
-# TRADE LESSON MENU
-# =========================================================
 def trade_lesson_menu():
     keyboard = [
         [
@@ -222,9 +212,6 @@ def trade_lesson_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
-# =========================================================
-# MARKETING LESSON MENU
-# =========================================================
 def marketing_lesson_menu():
     keyboard = [
         [
@@ -247,9 +234,6 @@ def marketing_lesson_menu():
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
-# =========================================================
-# GENERIC MESSAGE
-# =========================================================
 async def generic_message(
     query,
     title,
@@ -270,9 +254,6 @@ async def generic_message(
 """,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-# =========================================================
-# BUTTON HANDLER
-# =========================================================
 async def button_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -350,9 +331,6 @@ async def button_handler(
             reply_markup=lesson_menu()
         )
         return
-    # =====================================================
-    # MANAGEMENT EXAM
-    # =====================================================
     if data == "management_basics_exam":
         text, keyboard = exam_question(0, 0)
         await query.edit_message_text(
@@ -423,7 +401,7 @@ async def button_handler(
         )
         return
     # =====================================================
-    # INTERNATIONAL TRADE
+    # TRADE
     # =====================================================
     if data == "trade":
         await query.edit_message_text(
@@ -471,9 +449,6 @@ async def button_handler(
             reply_markup=trade_lesson_menu()
         )
         return
-    # =====================================================
-    # TRADE EXAM
-    # =====================================================
     if data == "trade_exam":
         text, keyboard = trade_exam_question(0, 0)
         await query.edit_message_text(
@@ -610,9 +585,6 @@ async def button_handler(
             reply_markup=marketing_lesson_menu()
         )
         return
-    # =====================================================
-    # MARKETING EXAM
-    # =====================================================
     if data == "marketing_exam":
         text, keyboard = marketing_exam_question(0, 0)
         await query.edit_message_text(
@@ -625,9 +597,7 @@ async def button_handler(
         question_index = int(parts[2])
         selected_answer = int(parts[3])
         score = int(parts[4])
-        question = MARKETING_QUESTIONS[
-            question_index
-        ]
+        question = MARKETING_QUESTIONS[question_index]
         if selected_answer == question["correct"]:
             score += 1
             result = "✅ پاسخ صحیح است!"
@@ -685,15 +655,144 @@ async def button_handler(
         )
         return
     # =====================================================
-    # OTHER SECTIONS
+    # ECONOMY
     # =====================================================
     if data == "economy":
-        await generic_message(
-            query,
-            "💰 اقتصاد و بازار",
-            "محتوای آموزشی اقتصاد و بازار به‌زودی در این بخش قرار می‌گیرد."
+        await query.edit_message_text(
+            """
+💰 اقتصاد و بازار
+در این بخش با مفاهیم پایه اقتصاد، عرضه و تقاضا، تورم، نرخ ارز، سیاست‌های اقتصادی و بازار سرمایه آشنا شوید.
+👇 موضوع موردنظر خود را انتخاب کنید:
+""",
+            reply_markup=economy_menu()
         )
         return
+    if data == "economy_basics":
+        await query.edit_message_text(
+            economy_basics_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "supply_demand":
+        await query.edit_message_text(
+            supply_demand_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "inflation":
+        await query.edit_message_text(
+            inflation_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "exchange_rate":
+        await query.edit_message_text(
+            exchange_rate_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "monetary_policy":
+        await query.edit_message_text(
+            monetary_policy_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "fiscal_policy":
+        await query.edit_message_text(
+            fiscal_policy_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "macroeconomics":
+        await query.edit_message_text(
+            macroeconomics_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "microeconomics":
+        await query.edit_message_text(
+            microeconomics_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "capital_market":
+        await query.edit_message_text(
+            capital_market_text(),
+            reply_markup=economy_lesson_menu()
+        )
+        return
+    if data == "economy_exam":
+        text, keyboard = economy_exam_question(0, 0)
+        await query.edit_message_text(
+            text,
+            reply_markup=keyboard
+        )
+        return
+    if data.startswith("economy_answer_"):
+        parts = data.split("_")
+        question_index = int(parts[2])
+        selected_answer = int(parts[3])
+        score = int(parts[4])
+        question = ECONOMY_QUESTIONS[question_index]
+        if selected_answer == question["correct"]:
+            score += 1
+            result = "✅ پاسخ صحیح است!"
+        else:
+            correct_answer = question["options"][
+                question["correct"]
+            ]
+            result = (
+                "❌ پاسخ اشتباه است.\n\n"
+                f"پاسخ صحیح: {correct_answer}"
+            )
+        next_question = question_index + 1
+        if next_question >= len(ECONOMY_QUESTIONS):
+            await query.edit_message_text(
+                f"""
+🏆 آزمون اقتصاد و بازار به پایان رسید!
+⭐ امتیاز شما:
+{score} از {len(ECONOMY_QUESTIONS)}
+{result}
+""",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "🔄 شروع مجدد",
+                                callback_data="economy_exam"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🔙 اقتصاد و بازار",
+                                callback_data="economy"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "🏠 منوی اصلی",
+                                callback_data="home"
+                            )
+                        ],
+                    ]
+                )
+            )
+            return
+        text, keyboard = economy_exam_question(
+            next_question,
+            score
+        )
+        await query.edit_message_text(
+            f"""
+{result}
+{text}
+""",
+            reply_markup=keyboard
+        )
+        return
+    # =====================================================
+    # OTHER SECTIONS
+    # =====================================================
     if data == "banking":
         await generic_message(
             query,
@@ -725,9 +824,6 @@ async def button_handler(
 """
         )
         return
-    # =====================================================
-    # FUTURE MANAGEMENT
-    # =====================================================
     if data == "organizational_behavior":
         await generic_message(
             query,
@@ -749,9 +845,6 @@ async def button_handler(
             "محتوای مدیریت منابع انسانی به‌زودی اضافه می‌شود."
         )
         return
-    # =====================================================
-    # UNKNOWN CALLBACK
-    # =====================================================
     await query.edit_message_text(
         """
 ❌ گزینه موردنظر پیدا نشد.
@@ -768,9 +861,6 @@ async def button_handler(
             ]
         )
     )
-# =========================================================
-# MAIN
-# =========================================================
 def main():
     if not TOKEN:
         raise ValueError(
@@ -806,8 +896,5 @@ def main():
     telegram_app.run_polling(
         drop_pending_updates=True
     )
-# =========================================================
-# RUN
-# =========================================================
 if __name__ == "__main__":
     main()
