@@ -1,773 +1,637 @@
 # =========================================================
-# 🎯 ANDISHKADEH — BANK EMPLOYMENT CENTER
+# 🎯 ANDISHKADEH
+# مرکز تخصصی آزمون استخدامی بانک‌ها
 # =========================================================
-#
-# مرکز تخصصی آمادگی آزمون استخدامی بانک‌ها
-#
-# امکانات:
-# 🏦 معرفی مسیر بانک‌ها
-# 📚 دسته‌بندی دروس
-# 🧠 هوش و استعداد
-# 🇬🇧 زبان انگلیسی
-# 💻 فناوری اطلاعات
-# 📊 اقتصاد
-# 🏦 بانکداری
-# ⚖️ قوانین و مقررات
-# 📝 آزمون جامع
-# 🎤 مصاحبه استخدامی
-#
-# =========================================================
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-# =========================================================
-# CONSTANTS
-# =========================================================
+
+
 SEPARATOR = "━━━━━━━━━━━━━━━━━━"
+
+
 # =========================================================
-# BANK DATABASE
+# 🏦 BANKS
 # =========================================================
+
 BANKS = {
-    "melli": {
-        "name": "بانک ملی ایران",
-        "emoji": "🏦",
-    },
-    "mellat": {
-        "name": "بانک ملت",
-        "emoji": "🏦",
-    },
-    "tejarat": {
-        "name": "بانک تجارت",
-        "emoji": "🏦",
-    },
-    "saderat": {
-        "name": "بانک صادرات ایران",
-        "emoji": "🏦",
-    },
-    "refah": {
-        "name": "بانک رفاه کارگران",
-        "emoji": "🏦",
-    },
-    "shahr": {
-        "name": "بانک شهر",
-        "emoji": "🏦",
-    },
-    "maskan": {
-        "name": "بانک مسکن",
-        "emoji": "🏦",
-    },
-    "keshavarzi": {
-        "name": "بانک کشاورزی",
-        "emoji": "🏦",
-    },
-    "sepah": {
-        "name": "بانک سپه",
-        "emoji": "🏦",
-    },
-    "mehr": {
-        "name": "بانک قرض‌الحسنه مهر ایران",
-        "emoji": "🏦",
-    },
+    "melli": "بانک ملی ایران",
+    "mellat": "بانک ملت",
+    "tejarat": "بانک تجارت",
+    "saderat": "بانک صادرات ایران",
+    "refah": "بانک رفاه کارگران",
+    "shahr": "بانک شهر",
+    "maskan": "بانک مسکن",
+    "keshavarzi": "بانک کشاورزی",
+    "sepah": "بانک سپه",
+    "mehr": "بانک قرض‌الحسنه مهر ایران",
 }
+
+
 # =========================================================
-# EMPLOYMENT SUBJECTS
+# 🏠 MAIN EMPLOYMENT MENU
 # =========================================================
-EMPLOYMENT_SUBJECTS = {
-    "general": {
-        "title": "📚 دروس عمومی",
-        "items": [
-            ("ادبیات فارسی", "employment_literature"),
-            ("معارف و اطلاعات عمومی", "employment_general"),
-            ("زبان انگلیسی", "employment_english"),
-            ("فناوری اطلاعات", "employment_it"),
-            ("هوش و استعداد", "employment_iq"),
-        ],
-    },
-    "specialized": {
-        "title": "🏦 دروس تخصصی",
-        "items": [
-            ("مبانی بانکداری", "employment_banking"),
-            ("عملیات بانکی", "employment_operations"),
-            ("اقتصاد", "employment_economics"),
-            ("مدیریت", "employment_management"),
-            ("حسابداری", "employment_accounting"),
-            ("حقوق و قوانین بانکی", "employment_law"),
-        ],
-    },
-}
-# =========================================================
-# MAIN EMPLOYMENT MENU
-# =========================================================
+
 def employment_menu():
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "🏦 بانک‌های هدف",
-                callback_data="employment_banks"
+                callback_data="employment_banks",
             )
         ],
+
         [
             InlineKeyboardButton(
-                "📚 دروس عمومی",
-                callback_data="employment_general_subjects"
-            ),
-            InlineKeyboardButton(
-                "🏦 دروس تخصصی",
-                callback_data="employment_specialized_subjects"
-            ),
+                "📚 دروس و منابع",
+                callback_data="employment_subjects",
+            )
         ],
+
         [
             InlineKeyboardButton(
                 "🧠 هوش و استعداد",
-                callback_data="employment_iq"
+                callback_data="employment_iq",
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🇬🇧 زبان انگلیسی",
-                callback_data="employment_english"
+                callback_data="employment_english",
             )
         ],
+
         [
             InlineKeyboardButton(
                 "💻 فناوری اطلاعات",
-                callback_data="employment_it"
+                callback_data="employment_it",
             )
         ],
+
         [
             InlineKeyboardButton(
-                "📝 آزمون جامع استخدامی",
-                callback_data="employment_full_exam"
+                "🏆 آزمون جامع استخدامی",
+                callback_data="employment_full_exam",
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🎤 آمادگی مصاحبه",
-                callback_data="employment_interview"
+                callback_data="employment_interview",
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🎯 مسیر پیشنهادی مطالعه",
-                callback_data="employment_roadmap"
+                callback_data="employment_roadmap",
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🏠 منوی اصلی",
-                callback_data="home"
+                callback_data="home",
             )
         ],
     ]
+
     return InlineKeyboardMarkup(keyboard)
+
+
 # =========================================================
-# MAIN TEXT
+# 🎯 MAIN TEXT
 # =========================================================
-def employment_text():
+
+def employment_banks_text():
+
     return f"""
-🎯 <b>مرکز آمادگی آزمون استخدامی بانک‌ها</b>
-جایی برای تبدیل مطالعه پراکنده
-به یک مسیر منظم و هدفمند.
+🎯 <b>مرکز تخصصی آمادگی آزمون استخدامی بانک‌ها</b>
+
 {SEPARATOR}
+
+اینجا فقط یک مجموعه تست ساده نیست.
+
+این بخش برای طراحی یک مسیر کامل
+از <b>یادگیری → تمرین → تست → آزمون → تحلیل → مصاحبه</b>
+ساخته شده است.
+
+{SEPARATOR}
+
 🏦 <b>بانک‌های هدف</b>
-بانک ملی
-بانک ملت
-بانک تجارت
-بانک صادرات
-بانک رفاه
-بانک شهر
-بانک مسکن
-بانک کشاورزی
-بانک سپه
-بانک مهر ایران
+
+• بانک ملی ایران
+• بانک ملت
+• بانک تجارت
+• بانک صادرات ایران
+• بانک رفاه کارگران
+• بانک شهر
+• بانک مسکن
+• بانک کشاورزی
+• بانک سپه
+• بانک قرض‌الحسنه مهر ایران
+
 {SEPARATOR}
+
 📚 <b>مسیر آمادگی</b>
-1️⃣ دروس عمومی
-2️⃣ دروس تخصصی
-3️⃣ هوش و استعداد
-4️⃣ آزمون‌های موضوعی
-5️⃣ آزمون جامع
-6️⃣ تحلیل عملکرد
-7️⃣ آمادگی مصاحبه
+
+1️⃣ یادگیری مفاهیم
+2️⃣ مطالعه منابع
+3️⃣ تست موضوعی
+4️⃣ آزمون زمان‌دار
+5️⃣ تحلیل پاسخ‌ها
+6️⃣ شناسایی نقاط ضعف
+7️⃣ آزمون جامع
+8️⃣ آمادگی مصاحبه
+
 {SEPARATOR}
-🎯 هدف ما:
-افزایش دانش تخصصی،
-افزایش سرعت تست‌زنی،
-شناخت نقاط ضعف،
-و رسیدن به آمادگی واقعی آزمون.
+
+⚠️ <b>نکته مهم</b>
+
+مواد آزمون، شرایط استخدام، ظرفیت‌ها و
+مراحل جذب ممکن است در هر فراخوان تغییر کنند.
+
+بنابراین برای شرایط قطعی هر آزمون،
+همیشه آخرین دفترچه رسمی همان فراخوان
+باید ملاک قرار گیرد.
+
 👇 مسیر موردنظر خود را انتخاب کنید.
 """
+
+
 # =========================================================
-# BANKS MENU
+# 🏦 BANKS MENU
 # =========================================================
-def banks_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🏦 بانک ملی",
-                callback_data="employment_bank_melli"
-            ),
-            InlineKeyboardButton(
-                "🏦 بانک ملت",
-                callback_data="employment_bank_mellat"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🏦 بانک تجارت",
-                callback_data="employment_bank_tejarat"
-            ),
-            InlineKeyboardButton(
-                "🏦 بانک صادرات",
-                callback_data="employment_bank_saderat"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🏦 بانک رفاه",
-                callback_data="employment_bank_refah"
-            ),
-            InlineKeyboardButton(
-                "🏦 بانک شهر",
-                callback_data="employment_bank_shahr"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🏦 بانک مسکن",
-                callback_data="employment_bank_maskan"
-            ),
-            InlineKeyboardButton(
-                "🏦 بانک کشاورزی",
-                callback_data="employment_bank_keshavarzi"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🏦 بانک سپه",
-                callback_data="employment_bank_sepah"
-            ),
-            InlineKeyboardButton(
-                "🏦 بانک مهر ایران",
-                callback_data="employment_bank_mehr"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🏠 منوی اصلی",
-                callback_data="home"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-# =========================================================
-# BANK DETAIL MENU
-# =========================================================
-def bank_detail_menu(bank_key):
-    bank = BANKS.get(bank_key)
-    if not bank:
-        return employment_menu()
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "📚 منابع و دروس",
-                callback_data=f"bank_subjects_{bank_key}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📝 نمونه سؤالات",
-                callback_data=f"bank_questions_{bank_key}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "⏱️ آزمون زمان‌دار",
-                callback_data=f"bank_exam_{bank_key}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🎯 نکات مهم آزمونی",
-                callback_data=f"bank_tips_{bank_key}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🎤 آمادگی مصاحبه",
-                callback_data=f"bank_interview_{bank_key}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 بانک‌های هدف",
-                callback_data="employment_banks"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-# =========================================================
-# BANK DETAIL TEXT
-# =========================================================
-def bank_detail_text(bank_key):
-    bank = BANKS.get(bank_key)
-    if not bank:
-        return "⚠️ بانک موردنظر پیدا نشد."
-    return f"""
-{bank["emoji"]} <b>{bank["name"]}</b>
-{SEPARATOR}
-🎯 <b>مرکز آمادگی استخدامی</b>
-در این بخش می‌توانید مسیر آمادگی
-خود را برای این بانک دنبال کنید.
-📚 منابع و دروس
-📝 نمونه سؤالات
-⏱️ آزمون زمان‌دار
-🎯 نکات آزمونی
-🎤 آمادگی مصاحبه
-{SEPARATOR}
-⚠️ توجه:
-مواد آزمون و شرایط استخدامی ممکن است
-بر اساس دفترچه و فراخوان هر دوره
-تغییر کند.
-برای مطالعه دقیق، همیشه آخرین
-دفترچه رسمی آزمون را ملاک قرار دهید.
-👇 بخش موردنظر را انتخاب کنید.
-"""
-# =========================================================
-# SUBJECT CATEGORY MENU
-# =========================================================
-def subject_category_menu(category):
-    data = EMPLOYMENT_SUBJECTS.get(
-        category
-    )
-    if not data:
-        return employment_menu()
+
+def employment_bank_menu(bank_name=None):
+
     keyboard = []
-    for title, callback in data["items"]:
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    title,
-                    callback_data=callback
-                )
-            ]
+
+    bank_callbacks = [
+        ("🏦 بانک ملی ایران", "employment_melli"),
+        ("🏦 بانک ملت", "employment_mellat"),
+        ("🏦 بانک تجارت", "employment_tejarat"),
+        ("🏦 بانک صادرات ایران", "employment_saderat"),
+        ("🏦 بانک رفاه کارگران", "employment_refah"),
+        ("🏦 بانک شهر", "employment_shahr"),
+        ("🏦 بانک مسکن", "employment_maskan"),
+        ("🏦 بانک کشاورزی", "employment_keshavarzi"),
+        ("🏦 بانک سپه", "employment_sepah"),
+        ("🏦 بانک مهر ایران", "employment_mehr"),
+    ]
+
+    row = []
+
+    for title, callback in bank_callbacks:
+
+        row.append(
+            InlineKeyboardButton(
+                title,
+                callback_data=callback,
+            )
         )
+
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+
+    if row:
+        keyboard.append(row)
+
     keyboard.extend(
         [
             [
                 InlineKeyboardButton(
                     "🔙 مرکز استخدامی",
-                    callback_data="employment"
+                    callback_data="employment",
                 )
             ],
+
             [
                 InlineKeyboardButton(
                     "🏠 منوی اصلی",
-                    callback_data="home"
+                    callback_data="home",
                 )
             ],
         ]
     )
-    return InlineKeyboardMarkup(
-        keyboard
-    )
+
+    return InlineKeyboardMarkup(keyboard)
+
+
 # =========================================================
-# GENERAL SUBJECTS
+# 🏦 BANK DETAIL
 # =========================================================
-def general_subjects_menu():
-    return subject_category_menu(
-        "general"
-    )
-def general_subjects_text():
+
+def employment_bank_text(bank_name):
+
     return f"""
-📚 <b>دروس عمومی آزمون استخدامی</b>
+🏦 <b>{bank_name}</b>
+
 {SEPARATOR}
-این بخش برای تقویت پایه‌های عمومی
-آزمون طراحی شده است.
-📖 ادبیات فارسی
-🌐 زبان انگلیسی
-🧠 هوش و استعداد
-💻 فناوری اطلاعات
-🌍 اطلاعات عمومی
+
+🎯 <b>مسیر آمادگی استخدامی</b>
+
+در این بخش می‌توانید آمادگی خود را
+برای آزمون و مراحل جذب این بانک
+به‌صورت هدفمند دنبال کنید.
+
 {SEPARATOR}
-🎯 پیشنهاد:
-ابتدا نقاط ضعف خود را شناسایی کنید،
-سپس با تست‌های موضوعی سرعت و دقت
-خود را افزایش دهید.
-👇 درس موردنظر را انتخاب کنید.
-"""
-# =========================================================
-# SPECIALIZED SUBJECTS
-# =========================================================
-def specialized_subjects_menu():
-    return subject_category_menu(
-        "specialized"
-    )
-def specialized_subjects_text():
-    return f"""
-🏦 <b>دروس تخصصی آزمون استخدامی</b>
+
+📚 <b>محورهای مطالعه</b>
+
+• دروس عمومی
+• مبانی بانکداری
+• عملیات بانکی
+• اقتصاد
+• مدیریت
+• حسابداری
+• حقوق و قوانین بانکی
+• هوش و استعداد
+• زبان انگلیسی
+• فناوری اطلاعات
+
 {SEPARATOR}
-مباحث تخصصی پیشنهادی:
-🏦 مبانی بانکداری
-💳 عملیات بانکی
-💰 اقتصاد
-👔 مدیریت
-📒 حسابداری
-⚖️ حقوق و قوانین بانکی
-{SEPARATOR}
-🎯 این بخش برای داوطلبانی طراحی شده
-که می‌خواهند علاوه بر تست‌زنی،
-مفاهیم تخصصی بانکداری را نیز تقویت کنند.
-👇 درس موردنظر را انتخاب کنید.
-"""
-# =========================================================
-# IQ
-# =========================================================
-def iq_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🔢 دنباله‌های عددی",
-                callback_data="iq_numbers"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔷 استدلال منطقی",
-                callback_data="iq_logic"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🧩 الگوها",
-                callback_data="iq_patterns"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "⏱️ آزمون هوش زمان‌دار",
-                callback_data="iq_exam"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(
-        keyboard
-    )
-def iq_text():
-    return f"""
-🧠 <b>هوش و استعداد</b>
-{SEPARATOR}
-در آزمون‌های استخدامی،
-سرعت تحلیل و دقت در حل مسئله
-اهمیت بالایی دارد.
-تمرکز این بخش:
-🔢 دنباله‌های عددی
-🧩 الگوها
-🔷 استدلال منطقی
-📐 حل مسئله
+
+📝 <b>مهارت‌های آزمونی</b>
+
 ⏱️ مدیریت زمان
-🎯 هدف:
-افزایش سرعت تشخیص الگو
-و کاهش زمان پاسخ‌گویی.
-"""
-# =========================================================
-# ENGLISH
-# =========================================================
-def english_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "📖 واژگان",
-                callback_data="english_vocabulary"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📚 گرامر",
-                callback_data="english_grammar"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📄 درک مطلب",
-                callback_data="english_reading"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📝 آزمون زبان",
-                callback_data="english_exam"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(
-        keyboard
-    )
-def english_text():
-    return f"""
-🇬🇧 <b>زبان انگلیسی</b>
+🎯 افزایش دقت
+🧠 تحلیل سؤال
+📊 تحلیل عملکرد
+🔄 مرور پاسخ‌های غلط
+
 {SEPARATOR}
-تمرکز آزمونی:
-📖 Vocabulary
-📚 Grammar
-📄 Reading Comprehension
-📝 Test Techniques
-🎯 پیشنهاد:
-واژگان پرتکرار را مرور کنید،
-سپس با تست زمان‌دار سرعت خواندن
-و پاسخ‌گویی خود را افزایش دهید.
+
+⚠️ شرایط و مواد امتحانی ممکن است
+در هر فراخوان تغییر کند.
+
+📌 آخرین دفترچه رسمی آزمون را
+همیشه ملاک قرار دهید.
 """
+
+
 # =========================================================
-# IT
+# 📚 SUBJECTS
 # =========================================================
-def it_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "💻 مفاهیم پایه کامپیوتر",
-                callback_data="it_basics"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🌐 اینترنت و شبکه",
-                callback_data="it_network"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔐 امنیت اطلاعات",
-                callback_data="it_security"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📝 آزمون فناوری اطلاعات",
-                callback_data="it_exam"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(
-        keyboard
-    )
-def it_text():
+
+def employment_subjects_text():
+
+    return f"""
+📚 <b>دروس و منابع آزمون استخدامی</b>
+
+{SEPARATOR}
+
+🏦 <b>دروس تخصصی بانکی</b>
+
+• مبانی بانکداری
+• عملیات بانکی
+• سپرده‌ها
+• تسهیلات
+• عقود بانکی
+• اعتبارسنجی
+• مدیریت ریسک
+• بانکداری الکترونیک
+• قوانین و مقررات بانکی
+• مبارزه با پولشویی
+
+{SEPARATOR}
+
+💰 <b>اقتصاد</b>
+
+• اقتصاد خرد
+• اقتصاد کلان
+• عرضه و تقاضا
+• تورم
+• نرخ ارز
+• سیاست پولی
+• سیاست مالی
+
+{SEPARATOR}
+
+👔 <b>مدیریت</b>
+
+• اصول مدیریت
+• برنامه‌ریزی
+• سازماندهی
+• رهبری
+• کنترل
+• تصمیم‌گیری
+• رفتار سازمانی
+
+{SEPARATOR}
+
+📒 <b>حسابداری</b>
+
+• اصول حسابداری
+• صورت‌های مالی
+• حسابداری بانکی
+• مفاهیم بدهکار و بستانکار
+• تجزیه و تحلیل مالی
+
+{SEPARATOR}
+
+⚖️ <b>حقوق و قوانین</b>
+
+• قوانین بانکی
+• مقررات مرتبط با چک
+• قوانین پولشویی
+• مقررات اعتباری
+• مفاهیم حقوق تجارت
+
+📌 محتوای مقرراتی باید متناسب با
+آخرین مقررات و دفترچه آزمون به‌روزرسانی شود.
+"""
+
+
+# =========================================================
+# 🧠 IQ
+# =========================================================
+
+def employment_iq_text():
+
+    return f"""
+🧠 <b>هوش و استعداد تحصیلی</b>
+
+{SEPARATOR}
+
+یکی از بخش‌های مهم بسیاری از
+آزمون‌های استخدامی، توانایی تحلیل
+و حل مسئله است.
+
+🎯 محورهای تمرین:
+
+🔢 دنباله‌های عددی
+
+🔷 استدلال منطقی
+
+🧩 تشخیص الگو
+
+📐 حل مسئله
+
+🧠 استدلال کلامی
+
+📊 تحلیل داده
+
+⏱️ مدیریت زمان
+
+{SEPARATOR}
+
+💡 <b>استراتژی پیشنهادی</b>
+
+ابتدا نوع سؤال را سریع تشخیص دهید،
+سپس روش حل مناسب را انتخاب کنید.
+
+هدف فقط درست جواب دادن نیست؛
+
+🎯 <b>درست + سریع + دقیق</b>
+"""
+
+
+# =========================================================
+# 🇬🇧 ENGLISH
+# =========================================================
+
+def employment_english_text():
+
+    return f"""
+🇬🇧 <b>زبان انگلیسی آزمون استخدامی</b>
+
+{SEPARATOR}
+
+📖 <b>Vocabulary</b>
+
+تمرکز روی واژگان پرتکرار،
+واژگان عمومی و اصطلاحات کاربردی.
+
+{SEPARATOR}
+
+📚 <b>Grammar</b>
+
+• زمان‌ها
+• افعال
+• ضمایر
+• حروف اضافه
+• جملات شرطی
+• ساختار جمله
+
+{SEPARATOR}
+
+📄 <b>Reading Comprehension</b>
+
+تمرین:
+
+• Skimming
+• Scanning
+• پیدا کردن ایده اصلی
+• تشخیص مفهوم از متن
+
+{SEPARATOR}
+
+🎯 <b>هدف</b>
+
+افزایش سرعت خواندن و کاهش زمان
+پاسخ‌گویی به سؤالات زبان.
+"""
+
+
+# =========================================================
+# 💻 IT
+# =========================================================
+
+def employment_it_text():
+
     return f"""
 💻 <b>فناوری اطلاعات</b>
+
 {SEPARATOR}
-مباحث پیشنهادی:
-🖥️ سخت‌افزار و نرم‌افزار
+
+🖥️ مفاهیم سخت‌افزار و نرم‌افزار
+
 🌐 اینترنت و شبکه
+
 🔐 امنیت اطلاعات
+
+💾 داده و اطلاعات
+
 📊 نرم‌افزارهای عمومی
-💾 مفاهیم داده
-🎯 تمرکز اصلی:
-شناخت مفاهیم پایه
-و افزایش سرعت پاسخ‌گویی تستی.
+
+🗂️ سیستم‌عامل‌ها
+
+🧠 مفاهیم پایه فناوری اطلاعات
+
+{SEPARATOR}
+
+🎯 تمرکز آزمونی:
+
+شناخت مفهوم + تشخیص گزینه صحیح
++ افزایش سرعت پاسخ‌گویی.
 """
+
+
 # =========================================================
-# ROADMAP
+# 🏆 FULL EXAM
 # =========================================================
-def roadmap_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "📅 برنامه ۳۰ روزه",
-                callback_data="roadmap_30"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📅 برنامه ۶۰ روزه",
-                callback_data="roadmap_60"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔥 برنامه فشرده",
-                callback_data="roadmap_fast"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(
-        keyboard
-    )
-def roadmap_text():
+
+def employment_full_exam_text():
+
     return f"""
-🎯 <b>مسیر پیشنهادی آمادگی آزمون</b>
+🏆 <b>آزمون جامع استخدامی بانک‌ها</b>
+
 {SEPARATOR}
-1️⃣ <b>مرحله اول — یادگیری</b>
-📚 مطالعه مفاهیم
-📝 خلاصه‌نویسی
-🔎 شناسایی نقاط ضعف
-⬇️
-2️⃣ <b>مرحله دوم — تست</b>
-📝 تست موضوعی
-⏱️ تست زمان‌دار
-🔄 مرور پاسخ‌های غلط
-⬇️
-3️⃣ <b>مرحله سوم — آزمون جامع</b>
-🎓 شبیه‌سازی شرایط آزمون
-📊 محاسبه درصد
-📈 تحلیل عملکرد
-⬇️
-4️⃣ <b>مرحله چهارم — تثبیت</b>
-🔁 مرور اشتباهات
-🎯 تمرکز روی نقاط ضعف
-🏆 آزمون مجدد
+
+🎯 <b>شبیه‌سازی آزمون واقعی</b>
+
+این بخش برای ترکیب چند حوزه
+و سنجش آمادگی کلی داوطلب طراحی شده است.
+
 {SEPARATOR}
-💡 کیفیت مطالعه مهم‌تر از تعداد
-ساعات مطالعه است.
+
+📚 محورهای آزمون:
+
+🏦 بانکداری
+
+💰 اقتصاد
+
+👔 مدیریت
+
+📒 حسابداری
+
+⚖️ قوانین و مقررات
+
+🧠 هوش و استعداد
+
+🇬🇧 زبان انگلیسی
+
+💻 فناوری اطلاعات
+
+{SEPARATOR}
+
+📊 <b>سیستم ارزیابی</b>
+
+پس از تکمیل موتور آزمون:
+
+✅ تعداد پاسخ صحیح
+❌ تعداد پاسخ غلط
+⚪ بدون پاسخ
+📊 درصد
+⏱️ زمان
+🎯 سطح عملکرد
+📈 تحلیل نقاط قوت و ضعف
+
+{SEPARATOR}
+
+🔥 هدف:
+
+تبدیل مطالعه معمولی به
+آمادگی واقعی آزمون استخدامی.
+
 """
+
+
 # =========================================================
-# INTERVIEW
+# 🎤 INTERVIEW
 # =========================================================
-def interview_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🎤 سوالات متداول مصاحبه",
-                callback_data="interview_questions"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "👔 رفتار حرفه‌ای",
-                callback_data="interview_behavior"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🏦 سوالات تخصصی بانکی",
-                callback_data="interview_banking"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🧠 آمادگی روانی",
-                callback_data="interview_mindset"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔙 مرکز استخدامی",
-                callback_data="employment"
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(
-        keyboard
-    )
-def interview_text():
+
+def employment_interview_text():
+
     return f"""
-🎤 <b>مرکز آمادگی مصاحبه استخدامی</b>
+🎤 <b>آمادگی مصاحبه استخدامی بانک</b>
+
 {SEPARATOR}
-مصاحبه فقط پاسخ دادن به سؤال نیست؛
-بلکه ترکیبی از دانش، رفتار حرفه‌ای،
-اعتمادبه‌نفس و توانایی ارتباط است.
-محورهای تمرین:
-🎤 سوالات عمومی
-🏦 سوالات بانکی
+
+مصاحبه فقط پاسخ دادن به سؤال نیست.
+
+ترکیبی از:
+
+🧠 دانش تخصصی
 👔 رفتار حرفه‌ای
-🧠 مدیریت استرس
 💬 مهارت ارتباطی
+🎯 اعتمادبه‌نفس
+⏱️ مدیریت استرس
+
 {SEPARATOR}
-🎯 قبل از مصاحبه:
-✔️ درباره بانک هدف مطالعه کنید.
-✔️ مفاهیم تخصصی را مرور کنید.
-✔️ پاسخ‌های خود را تمرین کنید.
-✔️ رزومه خود را به‌خوبی بشناسید.
-✔️ آرام و حرفه‌ای پاسخ دهید.
+
+🏦 <b>سؤالات تخصصی بانکی</b>
+
+• سپرده چیست؟
+• تسهیلات چیست؟
+• تفاوت انواع عقود
+• اعتبارسنجی چیست؟
+• ریسک اعتباری چیست؟
+• نقدینگی چیست؟
+• بانک مرکزی چه نقشی دارد؟
+• مبارزه با پولشویی چیست؟
+
+{SEPARATOR}
+
+👔 <b>رفتار حرفه‌ای</b>
+
+✔️ پاسخ کوتاه و دقیق
+
+✔️ حفظ آرامش
+
+✔️ ارتباط چشمی مناسب
+
+✔️ شناخت بانک هدف
+
+✔️ شناخت دقیق رزومه
+
+✔️ پرهیز از پاسخ‌های حفظی
+
 """
+
+
 # =========================================================
-# BANK INFORMATION
+# 🔙 BACK MENU
 # =========================================================
-def bank_info_text(bank_key):
-    bank = BANKS.get(bank_key)
-    if not bank:
-        return "⚠️ اطلاعات بانک پیدا نشد."
-    return f"""
-{bank["emoji"]} <b>{bank["name"]}</b>
-{SEPARATOR}
-🎯 <b>مسیر پیشنهادی آمادگی</b>
-📚 مطالعه دروس عمومی
-🏦 مطالعه دروس تخصصی
-🧠 تمرین هوش
-📝 تست موضوعی
-⏱️ آزمون زمان‌دار
-📊 تحلیل عملکرد
-🎤 آمادگی مصاحبه
-{SEPARATOR}
-⚠️ <b>یادآوری مهم</b>
-شرایط، مواد امتحانی، ظرفیت و مراحل
-استخدام می‌تواند در هر فراخوان تغییر کند.
-برای اطلاعات قطعی، دفترچه رسمی همان
-آزمون را بررسی کنید.
-"""
-# =========================================================
-# CALLBACK HELPERS
-# =========================================================
-def employment_back_button():
+
+def employment_back_menu():
+
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
                     "🔙 مرکز استخدامی",
-                    callback_data="employment"
+                    callback_data="employment",
                 )
             ],
             [
                 InlineKeyboardButton(
                     "🏠 منوی اصلی",
-                    callback_data="home"
+                    callback_data="home",
                 )
             ],
         ]
     )
-def banks_back_button():
-    return InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(
-                    "🔙 بانک‌های هدف",
-                    callback_data="employment_banks"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏠 منوی اصلی",
-                    callback_data="home"
-                ),
-            ],
-        ]
-    )
+
+
 # =========================================================
-# END
+# ALIASES / COMPATIBILITY
 # =========================================================
+
+def employment_menu_text():
+    return employment_banks_text()
+
+
+def employment_subjects_menu():
+    return employment_back_menu()
+
+
+def employment_iq_menu():
+    return employment_back_menu()
+
+
+def employment_english_menu():
+    return employment_back_menu()
+
+
+def employment_full_exam_menu():
+    return employment_back_menu()
+
+
+def employment_interview_menu():
+    return employment_back_menu()
