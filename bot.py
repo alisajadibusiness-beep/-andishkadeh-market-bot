@@ -23,7 +23,7 @@ from banking import (
     banking_risk_text,
     banking_central_text,
     banking_islamic_text,
-    banking_quiz_question,
+    banking_quiz_text,
     BANKING_QUESTIONS,
 )
 
