@@ -1,10 +1,14 @@
 # =========================================================
 # 🏛️ ANDISHKADEH MANAGEMENT & MARKET BOT
-# 🤖 MAIN BOT - FINAL CONNECTOR
+# 🤖 MAIN BOT
 # =========================================================
 import os
 import logging
-from telegram import Update
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -21,7 +25,6 @@ from menus import (
     trade_menu,
     marketing_menu,
     economy_menu,
-    economy_lesson_menu,
 )
 # =========================================================
 # BANKING
@@ -147,16 +150,81 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # TOKEN
 # =========================================================
-TOKEN = os.getenv("BOT_TOKEN")
-if not TOKEN:
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
     raise RuntimeError(
         "BOT_TOKEN environment variable is not set."
     )
 # =========================================================
-# COMMON KEYBOARDS
+# ECONOMY LESSON MENU
+# =========================================================
+def economy_lesson_menu():
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📚 مبانی علم اقتصاد",
+                    callback_data="economy_basics",
+                ),
+                InlineKeyboardButton(
+                    "📈 عرضه و تقاضا",
+                    callback_data="supply_demand",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔥 تورم و شاخص قیمت‌ها",
+                    callback_data="inflation",
+                ),
+                InlineKeyboardButton(
+                    "💱 نرخ ارز",
+                    callback_data="exchange_rate",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏦 سیاست پولی",
+                    callback_data="monetary_policy",
+                ),
+                InlineKeyboardButton(
+                    "💰 سیاست مالی",
+                    callback_data="fiscal_policy",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "📊 اقتصاد کلان",
+                    callback_data="macroeconomics",
+                ),
+                InlineKeyboardButton(
+                    "📉 اقتصاد خرد",
+                    callback_data="microeconomics",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "📈 بازار سرمایه",
+                    callback_data="capital_market",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 اقتصاد و بازار",
+                    callback_data="economy",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏠 منوی اصلی",
+                    callback_data="home",
+                ),
+            ],
+        ]
+    )
+# =========================================================
+# HOME KEYBOARD
 # =========================================================
 def home_keyboard():
-    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
     return InlineKeyboardMarkup(
         [
             [
@@ -184,15 +252,20 @@ async def start(
     )
     text = f"""
 سلام <b>{name}</b> 👋
-به <b>اندیشکده مدیریت و بازار</b> خوش آمدید.
-🎓 آموزش تخصصی
-📝 آزمون و تست
-📊 سنجش و تحلیل عملکرد
+🏛️ <b>به اندیشکده مدیریت و بازار خوش آمدید</b>
+مرکز تخصصی:
+📚 آموزش
+📝 آزمون
+📊 تحلیل عملکرد
 🏦 بانکداری
-🎯 آمادگی استخدامی
+🎯 استخدام بانک‌ها
 🌍 تجارت بین‌الملل
 📈 بازاریابی و فروش
 💰 اقتصاد و بازار
+━━━━━━━━━━━━━━━━━━
+اینجا فقط قرار نیست مطالعه کنید؛
+قرار است <b>یاد بگیرید، تست بزنید و پیشرفت خودتان را بسنجید.</b>
+👇 از منوی زیر شروع کنید.
 {main_menu_text()}
 """
     await update.message.reply_text(
@@ -228,11 +301,12 @@ async def section_callback(
             """
 📚 <b>مرکز آموزش مدیریت</b>
 ━━━━━━━━━━━━━━━━━━
-مدیریت را مفهومی یاد بگیرید،
-سپس با تست و تمرین آن را تثبیت کنید.
-📖 مبانی مدیریت
-📝 آزمون تخصصی
-🎯 مفاهیم کاربردی
+مدیریت را از مفاهیم پایه تا
+مباحث تخصصی یاد بگیرید.
+📖 درسنامه
+🧠 مفاهیم کلیدی
+📝 آزمون
+🎯 آمادگی آزمون‌های تخصصی
 """,
             management_menu(),
         ),
@@ -240,12 +314,13 @@ async def section_callback(
             """
 🌍 <b>مرکز تجارت بین‌الملل</b>
 ━━━━━━━━━━━━━━━━━━
-📘 مفاهیم پایه
-📑 اسناد و قراردادها
-🚚 لجستیک
-💳 پرداخت بین‌المللی
+📚 مفاهیم پایه تجارت
+📑 اسناد و قراردادهای تجاری
+🚚 حمل‌ونقل و لجستیک
+💳 روش‌های پرداخت
 🌐 Incoterms
-⚖️ قوانین تجارت
+⚖️ قوانین و سازمان‌های تجاری
+👇 بخش موردنظر را انتخاب کنید.
 """,
             trade_menu(),
         ),
@@ -255,10 +330,12 @@ async def section_callback(
 ━━━━━━━━━━━━━━━━━━
 📚 اصول بازاریابی
 🧠 رفتار مصرف‌کننده
+🔎 تحقیقات بازار
 🎯 STP
 🏷️ برندینگ
 🤝 فروش و مذاکره
 📱 بازاریابی دیجیتال
+👇 مسیر یادگیری خود را انتخاب کنید.
 """,
             marketing_menu(),
         ),
@@ -272,8 +349,10 @@ async def section_callback(
 💱 نرخ ارز
 🏦 سیاست پولی
 💰 سیاست مالی
-📊 اقتصاد کلان و خرد
+📊 اقتصاد کلان
+📉 اقتصاد خرد
 📈 بازار سرمایه
+👇 موضوع موردنظر را انتخاب کنید.
 """,
             economy_menu(),
         ),
@@ -305,19 +384,19 @@ async def banking_callback(
 # BANKING LESSONS
 # =========================================================
 BANKING_LESSONS = {
-    "banking_intro": lambda: banking_intro_text,
-    "banking_basics": lambda: banking_basics_text,
-    "banking_deposits": lambda: banking_deposits_text,
-    "banking_facilities": lambda: banking_facilities_text,
-    "banking_contracts": lambda: banking_contracts_text,
-    "banking_laws": lambda: banking_laws_text,
-    "banking_checks": lambda: banking_checks_text,
-    "banking_aml": lambda: banking_aml_text,
-    "banking_credit": lambda: banking_credit_text,
-    "banking_electronic": lambda: banking_electronic_text,
-    "banking_risk": lambda: banking_risk_text,
-    "banking_central": lambda: banking_central_text,
-    "banking_islamic": lambda: banking_islamic_text,
+    "banking_intro": banking_intro_text,
+    "banking_basics": banking_basics_text,
+    "banking_deposits": banking_deposits_text,
+    "banking_facilities": banking_facilities_text,
+    "banking_contracts": banking_contracts_text,
+    "banking_laws": banking_laws_text,
+    "banking_checks": banking_checks_text,
+    "banking_aml": banking_aml_text,
+    "banking_credit": banking_credit_text,
+    "banking_electronic": banking_electronic_text,
+    "banking_risk": banking_risk_text,
+    "banking_central": banking_central_text,
+    "banking_islamic": banking_islamic_text,
 }
 async def banking_lesson_callback(
     update: Update,
@@ -325,12 +404,11 @@ async def banking_lesson_callback(
 ):
     query = update.callback_query
     await query.answer()
-    getter = BANKING_LESSONS.get(
+    text = BANKING_LESSONS.get(
         query.data
     )
-    if not getter:
+    if not text:
         return
-    text = getter()
     await query.edit_message_text(
         text,
         reply_markup=banking_back_menu(),
@@ -347,145 +425,35 @@ async def banking_quiz_start(
     await query.answer()
     if not BANKING_QUESTIONS:
         await query.edit_message_text(
-            "⚠️ سؤال فعالی برای آزمون بانکداری وجود ندارد.",
-            reply_markup=banking_back_menu(),
-        )
-        return
-    text, keyboard = banking_quiz_question(
-        index=0,
-        score=0,
-    )
-    await query.edit_message_text(
-        text,
-        reply_markup=keyboard,
-    )
-async def banking_answer_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        parts = query.data.split("_")
-        question_index = int(parts[2])
-        selected_answer = int(parts[3])
-        score = int(parts[4])
-    except (
-        ValueError,
-        IndexError,
-    ):
-        await query.edit_message_text(
-            "❌ خطا در پردازش پاسخ.",
-            reply_markup=banking_back_menu(),
-        )
-        return
-    if not (
-        0
-        <= question_index
-        < len(BANKING_QUESTIONS)
-    ):
-        await query.edit_message_text(
-            "❌ سؤال موردنظر پیدا نشد.",
-            reply_markup=banking_back_menu(),
-        )
-        return
-    question = BANKING_QUESTIONS[
-        question_index
-    ]
-    if selected_answer == question["correct"]:
-        score += 1
-        result = (
-            "✅ <b>پاسخ صحیح است.</b>"
-        )
-    else:
-        correct = question["options"][
-            question["correct"]
-        ]
-        result = (
-            "❌ <b>پاسخ اشتباه است.</b>\n\n"
-            f"✅ پاسخ صحیح: <b>{correct}</b>"
-        )
-    next_index = question_index + 1
-    if next_index >= len(
-        BANKING_QUESTIONS
-    ):
-        total = len(
-            BANKING_QUESTIONS
-        )
-        percentage = (
-            int(
-                score
-                / total
-                * 100
-            )
-            if total
-            else 0
-        )
-        if percentage >= 90:
-            level = "🏆 استاد بانکداری"
-        elif percentage >= 80:
-            level = "🔥 حرفه‌ای"
-        elif percentage >= 70:
-            level = "⭐ خوب"
-        elif percentage >= 50:
-            level = "📚 متوسط"
-        else:
-            level = "🔄 نیازمند مرور"
-        from telegram import (
-            InlineKeyboardButton,
-            InlineKeyboardMarkup,
-        )
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 تکرار آزمون",
-                        callback_data="banking_quiz",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏦 بانکداری",
-                        callback_data="banking",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        )
-        await query.edit_message_text(
-            f"""
-🏆 <b>آزمون بانکداری به پایان رسید</b>
-━━━━━━━━━━━━━━━━━━
-⭐ امتیاز:
-<b>{score} از {total}</b>
-📊 درصد:
-<b>{percentage}٪</b>
-🎯 سطح:
-<b>{level}</b>
-━━━━━━━━━━━━━━━━━━
-{result}
-💡 پاسخ‌های اشتباه را مرور کنید
-و دوباره آزمون را انجام دهید.
+            """
+⚠️ <b>آزمون بانکداری</b>
+در حال حاضر سؤالی برای این آزمون
+ثبت نشده است.
 """,
-            reply_markup=keyboard,
+            reply_markup=banking_back_menu(),
             parse_mode="HTML",
         )
         return
-    text, keyboard = banking_quiz_question(
-        index=next_index,
-        score=score,
-    )
+    try:
+        text, keyboard = banking_quiz_question(
+            0,
+            0,
+        )
+    except TypeError:
+        try:
+            text, keyboard = banking_quiz_question(
+                index=0,
+                score=0,
+            )
+        except Exception as error:
+            logger.exception(error)
+            await query.edit_message_text(
+                "❌ خطا در اجرای آزمون بانکداری.",
+                reply_markup=banking_back_menu(),
+            )
+            return
     await query.edit_message_text(
-        f"""
-{result}
-━━━━━━━━━━━━━━━━━━
-{text}
-""",
+        text,
         reply_markup=keyboard,
         parse_mode="HTML",
     )
@@ -518,9 +486,11 @@ async def management_basics_callback(
         """
 📚 <b>مبانی مدیریت</b>
 ━━━━━━━━━━━━━━━━━━
-📖 درسنامه‌های تخصصی مدیریت
-📝 آزمون مبانی مدیریت
-🎯 مفاهیم کلیدی
+از این بخش می‌توانید مفاهیم اصلی
+مدیریت را مرحله‌به‌مرحله مطالعه کنید.
+📖 آموزش
+📝 تست
+🎯 مرور مفاهیم
 """,
         reply_markup=management_basics_menu(),
         parse_mode="HTML",
@@ -536,129 +506,13 @@ async def management_lesson_callback(
     )
     if not func:
         return
-    keyboard = (
-        management_definition_menu()
-        if query.data
-        == "management_definition"
-        else lesson_menu()
-    )
-    await query.edit_message_text(
-        func(),
-        reply_markup=keyboard,
-        parse_mode="HTML",
-    )
-async def management_exam_start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    text, keyboard = management_exam_question(
-        index=0,
-        score=0,
-    )
+    try:
+        text = func()
+    except TypeError:
+        text = func
     await query.edit_message_text(
         text,
-        reply_markup=keyboard,
-    )
-async def management_answer_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        parts = query.data.split("_")
-        index = int(parts[2])
-        selected = int(parts[3])
-        score = int(parts[4])
-    except (
-        ValueError,
-        IndexError,
-    ):
-        await query.edit_message_text(
-            "❌ خطا در پردازش پاسخ.",
-            reply_markup=management_basics_menu(),
-        )
-        return
-    if not (
-        0 <= index < len(
-            MANAGEMENT_QUESTIONS
-        )
-    ):
-        return
-    question = MANAGEMENT_QUESTIONS[
-        index
-    ]
-    if selected == question["correct"]:
-        score += 1
-        result = "✅ پاسخ صحیح است."
-    else:
-        result = (
-            "❌ پاسخ اشتباه است.\n"
-            f"✅ پاسخ صحیح: "
-            f"{question['options'][question['correct']]}"
-        )
-    next_index = index + 1
-    if next_index >= len(
-        MANAGEMENT_QUESTIONS
-    ):
-        total = len(
-            MANAGEMENT_QUESTIONS
-        )
-        percentage = (
-            int(score / total * 100)
-            if total
-            else 0
-        )
-        from telegram import (
-            InlineKeyboardButton,
-            InlineKeyboardMarkup,
-        )
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 تکرار آزمون",
-                        callback_data="management_basics_exam",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "📚 مبانی مدیریت",
-                        callback_data="management_basics",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        )
-        await query.edit_message_text(
-            f"""
-🏆 <b>آزمون مدیریت تمام شد</b>
-━━━━━━━━━━━━━━━━━━
-⭐ امتیاز:
-<b>{score} از {total}</b>
-📊 درصد:
-<b>{percentage}٪</b>
-━━━━━━━━━━━━━━━━━━
-{result}
-""",
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-        return
-    text, keyboard = management_exam_question(
-        index=next_index,
-        score=score,
-    )
-    await query.edit_message_text(
-        f"{result}\n\n━━━━━━━━━━━━━━━━━━\n\n{text}",
-        reply_markup=keyboard,
+        reply_markup=lesson_menu(),
         parse_mode="HTML",
     )
 # =========================================================
@@ -689,115 +543,13 @@ async def trade_lesson_callback(
     )
     if not func:
         return
-    await query.edit_message_text(
-        func(),
-        reply_markup=trade_menu(),
-        parse_mode="HTML",
-    )
-async def trade_exam_start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    text, keyboard = trade_exam_question(
-        index=0,
-        score=0,
-    )
+    try:
+        text = func()
+    except TypeError:
+        text = func
     await query.edit_message_text(
         text,
-        reply_markup=keyboard,
-    )
-async def trade_answer_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        parts = query.data.split("_")
-        index = int(parts[2])
-        selected = int(parts[3])
-        score = int(parts[4])
-    except (
-        ValueError,
-        IndexError,
-    ):
-        await query.edit_message_text(
-            "❌ خطا در پردازش پاسخ.",
-            reply_markup=trade_menu(),
-        )
-        return
-    question = TRADE_QUESTIONS[index]
-    if selected == question["correct"]:
-        score += 1
-        result = "✅ پاسخ صحیح است."
-    else:
-        result = (
-            "❌ پاسخ اشتباه است.\n"
-            f"✅ پاسخ صحیح: "
-            f"{question['options'][question['correct']]}"
-        )
-    next_index = index + 1
-    if next_index >= len(
-        TRADE_QUESTIONS
-    ):
-        total = len(
-            TRADE_QUESTIONS
-        )
-        percentage = (
-            int(score / total * 100)
-            if total
-            else 0
-        )
-        from telegram import (
-            InlineKeyboardButton,
-            InlineKeyboardMarkup,
-        )
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 تکرار آزمون",
-                        callback_data="trade_exam",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🌍 تجارت",
-                        callback_data="trade",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        )
-        await query.edit_message_text(
-            f"""
-🏆 <b>آزمون تجارت به پایان رسید</b>
-━━━━━━━━━━━━━━━━━━
-⭐ امتیاز:
-<b>{score} از {total}</b>
-📊 درصد:
-<b>{percentage}٪</b>
-━━━━━━━━━━━━━━━━━━
-{result}
-""",
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-        return
-    text, keyboard = trade_exam_question(
-        index=next_index,
-        score=score,
-    )
-    await query.edit_message_text(
-        f"{result}\n\n━━━━━━━━━━━━━━━━━━\n\n{text}",
-        reply_markup=keyboard,
+        reply_markup=trade_menu(),
         parse_mode="HTML",
     )
 # =========================================================
@@ -834,114 +586,13 @@ async def marketing_lesson_callback(
     )
     if not func:
         return
-    from menus import marketing_menu
-    await query.edit_message_text(
-        func(),
-        reply_markup=marketing_menu(),
-        parse_mode="HTML",
-    )
-async def marketing_exam_start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    text, keyboard = marketing_exam_question(
-        index=0,
-        score=0,
-    )
+    try:
+        text = func()
+    except TypeError:
+        text = func
     await query.edit_message_text(
         text,
-        reply_markup=keyboard,
-    )
-async def marketing_answer_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        parts = query.data.split("_")
-        index = int(parts[2])
-        selected = int(parts[3])
-        score = int(parts[4])
-    except (
-        ValueError,
-        IndexError,
-    ):
-        return
-    question = MARKETING_QUESTIONS[
-        index
-    ]
-    if selected == question["correct"]:
-        score += 1
-        result = "✅ پاسخ صحیح است."
-    else:
-        result = (
-            "❌ پاسخ اشتباه است.\n"
-            f"✅ پاسخ صحیح: "
-            f"{question['options'][question['correct']]}"
-        )
-    next_index = index + 1
-    if next_index >= len(
-        MARKETING_QUESTIONS
-    ):
-        total = len(
-            MARKETING_QUESTIONS
-        )
-        percentage = (
-            int(score / total * 100)
-            if total
-            else 0
-        )
-        from telegram import (
-            InlineKeyboardButton,
-            InlineKeyboardMarkup,
-        )
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 تکرار آزمون",
-                        callback_data="marketing_exam",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "📈 بازاریابی",
-                        callback_data="marketing",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        )
-        await query.edit_message_text(
-            f"""
-🏆 <b>آزمون بازاریابی تمام شد</b>
-━━━━━━━━━━━━━━━━━━
-⭐ امتیاز:
-<b>{score} از {total}</b>
-📊 درصد:
-<b>{percentage}٪</b>
-━━━━━━━━━━━━━━━━━━
-{result}
-""",
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-        return
-    text, keyboard = marketing_exam_question(
-        index=next_index,
-        score=score,
-    )
-    await query.edit_message_text(
-        f"{result}\n\n━━━━━━━━━━━━━━━━━━\n\n{text}",
-        reply_markup=keyboard,
+        reply_markup=marketing_menu(),
         parse_mode="HTML",
     )
 # =========================================================
@@ -978,160 +629,56 @@ async def economy_lesson_callback(
     )
     if not func:
         return
+    try:
+        text = func()
+    except TypeError:
+        text = func
     await query.edit_message_text(
-        func(),
+        text,
         reply_markup=economy_lesson_menu(),
         parse_mode="HTML",
     )
-async def economy_exam_start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    text, keyboard = economy_exam_question(
-        index=0,
-        score=0,
-    )
-    await query.edit_message_text(
-        text,
-        reply_markup=keyboard,
-    )
-async def economy_answer_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        parts = query.data.split("_")
-        index = int(parts[2])
-        selected = int(parts[3])
-        score = int(parts[4])
-    except (
-        ValueError,
-        IndexError,
-    ):
-        return
-    question = ECONOMY_QUESTIONS[
-        index
-    ]
-    if selected == question["correct"]:
-        score += 1
-        result = "✅ پاسخ صحیح است."
-    else:
-        result = (
-            "❌ پاسخ اشتباه است.\n"
-            f"✅ پاسخ صحیح: "
-            f"{question['options'][question['correct']]}"
-        )
-    next_index = index + 1
-    if next_index >= len(
-        ECONOMY_QUESTIONS
-    ):
-        total = len(
-            ECONOMY_QUESTIONS
-        )
-        percentage = (
-            int(score / total * 100)
-            if total
-            else 0
-        )
-        from telegram import (
-            InlineKeyboardButton,
-            InlineKeyboardMarkup,
-        )
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 تکرار آزمون",
-                        callback_data="economy_exam",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "💰 اقتصاد",
-                        callback_data="economy",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        )
-        await query.edit_message_text(
-            f"""
-🏆 <b>آزمون اقتصاد تمام شد</b>
-━━━━━━━━━━━━━━━━━━
-⭐ امتیاز:
-<b>{score} از {total}</b>
-📊 درصد:
-<b>{percentage}٪</b>
-━━━━━━━━━━━━━━━━━━
-{result}
-""",
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-        return
-    text, keyboard = economy_exam_question(
-        index=next_index,
-        score=score,
-    )
-    await query.edit_message_text(
-        f"{result}\n\n━━━━━━━━━━━━━━━━━━\n\n{text}",
-        reply_markup=keyboard,
-        parse_mode="HTML",
-    )
 # =========================================================
-# EXAMS CENTER
+# EXAMS MENU
 # =========================================================
 def exams_menu():
-    from telegram import (
-        InlineKeyboardButton,
-        InlineKeyboardMarkup,
-    )
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
                     "📚 مدیریت",
-                    callback_data="management_basics_exam",
-                )
+                    callback_data="management_exam",
+                ),
             ],
             [
                 InlineKeyboardButton(
-                    "🌍 تجارت",
+                    "🌍 تجارت بین‌الملل",
                     callback_data="trade_exam",
-                )
+                ),
             ],
             [
                 InlineKeyboardButton(
-                    "📈 بازاریابی",
+                    "📈 بازاریابی و فروش",
                     callback_data="marketing_exam",
-                )
+                ),
             ],
             [
                 InlineKeyboardButton(
-                    "💰 اقتصاد",
+                    "💰 اقتصاد و بازار",
                     callback_data="economy_exam",
-                )
+                ),
             ],
             [
                 InlineKeyboardButton(
                     "🏦 بانکداری",
                     callback_data="banking_quiz",
-                )
+                ),
             ],
             [
                 InlineKeyboardButton(
                     "🏠 منوی اصلی",
                     callback_data="home",
-                )
+                ),
             ],
         ]
     )
@@ -1143,20 +690,15 @@ async def exams_callback(
     await query.answer()
     await query.edit_message_text(
         """
-🎓 <b>مرکز آزمون اندیشکده</b>
+🎓 <b>مرکز آزمون</b>
 ━━━━━━━━━━━━━━━━━━
-📝 آزمون‌های تخصصی
-🎯 سنجش دانش
-📊 محاسبه درصد
-🏆 ارزیابی عملکرد
-مسیر پیشنهادی:
-📖 آموزش
-⬇️
-📝 تست
-⬇️
-🔄 مرور اشتباهات
-⬇️
-🏆 آزمون مجدد
+در این بخش می‌توانید دانش خود را
+در حوزه‌های مختلف بسنجید.
+📊 امتیاز
+📈 درصد
+🏆 ارزیابی
+🔄 آزمون مجدد
+👇 حوزه آزمون را انتخاب کنید.
 """,
         reply_markup=exams_menu(),
         parse_mode="HTML",
@@ -1170,8 +712,12 @@ async def employment_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = employment_text()
+    except TypeError:
+        text = employment_text
     await query.edit_message_text(
-        employment_text(),
+        text,
         reply_markup=employment_menu(),
         parse_mode="HTML",
     )
@@ -1183,8 +729,13 @@ async def employment_banks_callback(
     await query.answer()
     await query.edit_message_text(
         """
-🏦 <b>بانک‌های هدف</b>
+🏦 <b>آزمون‌های استخدامی بانک‌ها</b>
+━━━━━━━━━━━━━━━━━━
 بانک موردنظر خود را انتخاب کنید:
+🎯 منابع
+📝 سؤالات
+📚 دروس
+🎤 مصاحبه
 """,
         reply_markup=banks_menu(),
         parse_mode="HTML",
@@ -1196,8 +747,6 @@ async def employment_bank_callback(
     query = update.callback_query
     await query.answer()
     prefix = "employment_bank_"
-    if not query.data.startswith(prefix):
-        return
     bank_key = query.data[
         len(prefix):
     ]
@@ -1207,9 +756,17 @@ async def employment_bank_callback(
             reply_markup=banks_menu(),
         )
         return
+    try:
+        text = bank_detail_text(
+            bank_key
+        )
+    except TypeError:
+        text = bank_detail_text
     await query.edit_message_text(
-        bank_detail_text(bank_key),
-        reply_markup=bank_detail_menu(bank_key),
+        text,
+        reply_markup=bank_detail_menu(
+            bank_key
+        ),
         parse_mode="HTML",
     )
 async def employment_general_callback(
@@ -1218,8 +775,12 @@ async def employment_general_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = general_subjects_text()
+    except TypeError:
+        text = general_subjects_text
     await query.edit_message_text(
-        general_subjects_text(),
+        text,
         reply_markup=general_subjects_menu(),
         parse_mode="HTML",
     )
@@ -1229,8 +790,12 @@ async def employment_specialized_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = specialized_subjects_text()
+    except TypeError:
+        text = specialized_subjects_text
     await query.edit_message_text(
-        specialized_subjects_text(),
+        text,
         reply_markup=specialized_subjects_menu(),
         parse_mode="HTML",
     )
@@ -1240,8 +805,12 @@ async def employment_iq_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = iq_text()
+    except TypeError:
+        text = iq_text
     await query.edit_message_text(
-        iq_text(),
+        text,
         reply_markup=iq_menu(),
         parse_mode="HTML",
     )
@@ -1251,8 +820,12 @@ async def employment_english_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = english_text()
+    except TypeError:
+        text = english_text
     await query.edit_message_text(
-        english_text(),
+        text,
         reply_markup=english_menu(),
         parse_mode="HTML",
     )
@@ -1262,8 +835,12 @@ async def employment_it_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = it_text()
+    except TypeError:
+        text = it_text
     await query.edit_message_text(
-        it_text(),
+        text,
         reply_markup=it_menu(),
         parse_mode="HTML",
     )
@@ -1273,8 +850,12 @@ async def employment_roadmap_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = roadmap_text()
+    except TypeError:
+        text = roadmap_text
     await query.edit_message_text(
-        roadmap_text(),
+        text,
         reply_markup=roadmap_menu(),
         parse_mode="HTML",
     )
@@ -1284,90 +865,36 @@ async def employment_interview_callback(
 ):
     query = update.callback_query
     await query.answer()
+    try:
+        text = interview_text()
+    except TypeError:
+        text = interview_text
     await query.edit_message_text(
-        interview_text(),
+        text,
         reply_markup=interview_menu(),
         parse_mode="HTML",
     )
 # =========================================================
-# EMPLOYMENT BANK ACTIONS
+# SOCIAL
 # =========================================================
-async def employment_bank_action_callback(
+async def social_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
-    query = update.callback_query
-    await query.answer()
-    parts = query.data.split("_")
-    if len(parts) < 3:
-        return
-    action = parts[1]
-    bank_key = "_".join(parts[2:])
-    bank = BANKS.get(bank_key)
-    if not bank:
-        return
-    labels = {
-        "subjects":
-            "📚 منابع و دروس",
-        "questions":
-            "📝 نمونه سؤالات",
-        "exam":
-            "⏱️ آزمون زمان‌دار",
-        "tips":
-            "🎯 نکات مهم آزمونی",
-        "interview":
-            "🎤 آمادگی مصاحبه",
-    }
-    title = labels.get(
-        action,
-        "🎯 بخش استخدامی",
-    )
-    await query.edit_message_text(
-        f"""
-{title}
-━━━━━━━━━━━━━━━━━━
-🏦 <b>{bank["name"]}</b>
-این بخش در نسخه فعلی به مرکز
-محتوای تخصصی بانک متصل شده است.
-📌 توجه:
-شرایط استخدام، مواد آزمون و مراحل
-هر فراخوان ممکن است متفاوت باشد.
-برای اطلاعات قطعی، دفترچه رسمی
-همان فراخوان را ملاک قرار دهید.
-""",
-        reply_markup=bank_detail_menu(
-            bank_key
-        ),
-        parse_mode="HTML",
+    await social_callback(
+        update,
+        context,
     )
 # =========================================================
-# BANKING FULL EXAM REDIRECT
+# ERROR HANDLER
 # =========================================================
-async def banking_full_exam_callback(
-    update: Update,
+async def error_handler(
+    update: object,
     context: ContextTypes.DEFAULT_TYPE,
 ):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        """
-🏆 <b>آزمون جامع بانکداری</b>
-━━━━━━━━━━━━━━━━━━
-این آزمون برای سنجش دانش شما
-در مهم‌ترین مباحث بانکداری طراحی شده است.
-📚 مبانی
-💰 سپرده‌ها
-💳 تسهیلات
-📑 عقود
-⚖️ قوانین
-🔐 مبارزه با پولشویی
-📊 اعتبارسنجی
-💻 بانکداری الکترونیک
-📈 مدیریت ریسک
-👇 برای شروع، آزمون تخصصی را اجرا کنید.
-""",
-        reply_markup=banking_back_menu(),
-        parse_mode="HTML",
+    logger.error(
+        "Unhandled exception while processing update",
+        exc_info=context.error,
     )
 # =========================================================
 # REGISTER HANDLERS
@@ -1375,45 +902,45 @@ async def banking_full_exam_callback(
 def register_handlers(
     application: Application
 ):
-    # =====================================================
+    # -----------------------------------------------------
     # COMMANDS
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CommandHandler(
             "start",
             start,
         )
     )
-    # =====================================================
+    # -----------------------------------------------------
     # HOME
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             home_callback,
             pattern=r"^home$",
         )
     )
-    # =====================================================
+    # -----------------------------------------------------
     # MAIN SECTIONS
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             section_callback,
             pattern=r"^(management|trade|marketing|economy)$",
         )
     )
-    # =====================================================
+    # -----------------------------------------------------
     # EXAMS
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             exams_callback,
-            pattern=r"^exams$",
+            pattern=r"^exam$|^exams$",
         )
     )
-    # =====================================================
+    # -----------------------------------------------------
     # BANKING
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             banking_callback,
@@ -1425,9 +952,9 @@ def register_handlers(
             banking_lesson_callback,
             pattern=(
                 r"^banking_"
-                r"(intro|basics|deposits|facilities|contracts|"
-                r"laws|checks|aml|credit|electronic|risk|"
-                r"central|islamic)$"
+                r"(intro|basics|deposits|facilities|"
+                r"contracts|laws|checks|aml|credit|"
+                r"electronic|risk|central|islamic)$"
             ),
         )
     )
@@ -1437,21 +964,9 @@ def register_handlers(
             pattern=r"^banking_quiz$",
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            banking_answer_callback,
-            pattern=r"^banking_answer_\d+_\d+_\d+$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            banking_full_exam_callback,
-            pattern=r"^banking_full_exam$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # MANAGEMENT
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             management_basics_callback,
@@ -1462,104 +977,73 @@ def register_handlers(
         CallbackQueryHandler(
             management_lesson_callback,
             pattern=(
-                r"^(management_definition|management_functions|"
-                r"management_levels|management_roles|"
-                r"management_skills|efficiency_effectiveness|"
+                r"^(management_definition|"
+                r"management_functions|"
+                r"management_levels|"
+                r"management_roles|"
+                r"management_skills|"
+                r"efficiency_effectiveness|"
                 r"management_schools)$"
             ),
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            management_exam_start,
-            pattern=r"^management_basics_exam$|^management_definition_exam$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            management_answer_callback,
-            pattern=r"^mg_answer_\d+_\d+_\d+$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # TRADE
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             trade_lesson_callback,
             pattern=(
-                r"^(trade_basics|trade_documents|"
-                r"trade_logistics|trade_payment|"
-                r"trade_incoterms|trade_laws)$"
+                r"^(trade_basics|"
+                r"trade_documents|"
+                r"trade_logistics|"
+                r"trade_payment|"
+                r"trade_incoterms|"
+                r"trade_laws)$"
             ),
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            trade_exam_start,
-            pattern=r"^trade_exam$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            trade_answer_callback,
-            pattern=r"^trade_answer_\d+_\d+_\d+$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # MARKETING
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             marketing_lesson_callback,
             pattern=(
-                r"^(marketing_basics|consumer_behavior|"
-                r"market_research|marketing_4p|marketing_stp|"
-                r"marketing_branding|sales_negotiation|"
-                r"sales_funnel|digital_marketing)$"
+                r"^(marketing_basics|"
+                r"consumer_behavior|"
+                r"market_research|"
+                r"marketing_4p|"
+                r"marketing_stp|"
+                r"marketing_branding|"
+                r"sales_negotiation|"
+                r"sales_funnel|"
+                r"digital_marketing)$"
             ),
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            marketing_exam_start,
-            pattern=r"^marketing_exam$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            marketing_answer_callback,
-            pattern=r"^marketing_answer_\d+_\d+_\d+$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # ECONOMY
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             economy_lesson_callback,
             pattern=(
-                r"^(economy_basics|supply_demand|inflation|"
-                r"exchange_rate|monetary_policy|fiscal_policy|"
-                r"macroeconomics|microeconomics|capital_market)$"
+                r"^(economy_basics|"
+                r"supply_demand|"
+                r"inflation|"
+                r"exchange_rate|"
+                r"monetary_policy|"
+                r"fiscal_policy|"
+                r"macroeconomics|"
+                r"microeconomics|"
+                r"capital_market)$"
             ),
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            economy_exam_start,
-            pattern=r"^economy_exam$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            economy_answer_callback,
-            pattern=r"^economy_answer_\d+_\d+_\d+$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # EMPLOYMENT
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             employment_callback,
@@ -1575,13 +1059,13 @@ def register_handlers(
     application.add_handler(
         CallbackQueryHandler(
             employment_general_callback,
-            pattern=r"^employment_general_subjects$",
+            pattern=r"^employment_general$|^employment_general_subjects$",
         )
     )
     application.add_handler(
         CallbackQueryHandler(
             employment_specialized_callback,
-            pattern=r"^employment_specialized_subjects$",
+            pattern=r"^employment_specialized$|^employment_specialized_subjects$",
         )
     )
     application.add_handler(
@@ -1620,31 +1104,14 @@ def register_handlers(
             pattern=r"^employment_bank_.+$",
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_bank_action_callback,
-            pattern=r"^bank_(subjects|questions|exam|tips|interview)_.+$",
-        )
-    )
-    # =====================================================
+    # -----------------------------------------------------
     # SOCIAL
-    # =====================================================
+    # -----------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
-            social_callback,
+            social_handler,
             pattern=r"^social$",
         )
-    )
-# =========================================================
-# ERROR HANDLER
-# =========================================================
-async def error_handler(
-    update: object,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    logger.error(
-        "Unhandled exception while processing update",
-        exc_info=context.error,
     )
 # =========================================================
 # MAIN
@@ -1652,7 +1119,7 @@ async def error_handler(
 def main():
     application = (
         Application.builder()
-        .token(TOKEN)
+        .token(BOT_TOKEN)
         .build()
     )
     register_handlers(
@@ -1662,7 +1129,7 @@ def main():
         error_handler
     )
     logger.info(
-        "🏛️ Andishkadeh Market Bot started successfully."
+        "🏛️ Andishkadeh Market Bot started."
     )
     print(
         "🏛️ Andishkadeh Market Bot is running..."
