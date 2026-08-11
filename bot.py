@@ -23,7 +23,7 @@ from banking import (
     banking_risk_text,
     banking_central_text,
     banking_islamic_text,
-    banking_quiz_text,
+    banking_quiz_question,
     BANKING_QUESTIONS,
 )
 
@@ -112,6 +112,13 @@ from employment import (
     employment_english_text,
     employment_full_exam_text,
     employment_back_menu,
+    employment_it_text,
+    EMPLOYMENT_QUESTIONS,
+    employment_exam_menu,
+    employment_exam_intro_text,
+    employment_exam_start,
+    employment_exam_question,
+    employment_exam_answer,
 )
 
 # =========================================================
@@ -826,6 +833,7 @@ async def employment_simple_callback(update: Update, context: ContextTypes.DEFAU
         "employment_subjects": ("📚 دروس و منابع", employment_subjects_text()),
         "employment_iq": ("🧠 آزمون هوش و استعداد", employment_iq_text()),
         "employment_english": ("🇬🇧 زبان انگلیسی", employment_english_text()),
+        "employment_it": ("💻 فناوری اطلاعات", employment_it_text()),
         "employment_full_exam": ("🏆 آزمون جامع استخدامی", employment_full_exam_text()),
         "employment_interview": ("🎤 آمادگی مصاحبه استخدامی", employment_interview_text()),
     }
@@ -835,6 +843,57 @@ async def employment_simple_callback(update: Update, context: ContextTypes.DEFAU
 
     _, text = pages[query.data]
     await query.edit_message_text(text, reply_markup=employment_back_menu())
+
+
+
+async def employment_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text(
+        employment_exam_intro_text(),
+        reply_markup=employment_exam_menu(),
+    )
+
+
+async def employment_exam_count_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    try:
+        count = query.data.rsplit("_", 1)[1]
+        count = "random" if count == "random" else int(count)
+    except (ValueError, IndexError):
+        count = 10
+
+    employment_exam_start(query.from_user.id, count=count)
+    text, keyboard = employment_exam_question(query.from_user.id)
+    await query.edit_message_text(text, reply_markup=keyboard)
+
+
+async def employment_exam_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    try:
+        selected = int(query.data.rsplit("_", 1)[1])
+    except (ValueError, IndexError):
+        await query.edit_message_text(
+            "❌ پاسخ قابل پردازش نیست.",
+            reply_markup=employment_exam_menu(),
+        )
+        return
+
+    result = employment_exam_answer(query.from_user.id, selected)
+
+    if result is None:
+        await query.edit_message_text(
+            "⚠️ آزمون فعال پیدا نشد. لطفاً آزمون را دوباره شروع کنید.",
+            reply_markup=employment_exam_menu(),
+        )
+        return
+
+    text, keyboard = result
+    await query.edit_message_text(text, reply_markup=keyboard)
 
 
 async def employment_bank_placeholder_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1010,13 +1069,33 @@ def register_handlers(application):
     application.add_handler(
         CallbackQueryHandler(
             employment_simple_callback,
-            pattern=r"^(employment_subjects|employment_iq|employment_english|employment_full_exam|employment_interview)$",
+            pattern=r"^(employment_subjects|employment_iq|employment_english|employment_it|employment_full_exam|employment_interview)$",
         )
     )
     application.add_handler(
         CallbackQueryHandler(
             employment_bank_placeholder_callback,
             pattern=r"^bank_(lesson|questions|exam|tips)_.+$",
+        )
+    )
+
+    # Employment Exam Engine
+    application.add_handler(
+        CallbackQueryHandler(
+            employment_exam_callback,
+            pattern=r"^employment_exam$",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            employment_exam_count_callback,
+            pattern=r"^employment_count_(5|10|15|random)$",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            employment_exam_answer_callback,
+            pattern=r"^employment_answer_\d+_\d+$",
         )
     )
 
