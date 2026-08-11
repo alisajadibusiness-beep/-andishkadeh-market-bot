@@ -683,6 +683,73 @@ BANKING_QUESTIONS = [
     },
 ]
 # =========================================================
+# 🧠 BANKING QUIZ QUESTION
+# =========================================================
+def banking_quiz_question(index=0, score=0):
+    """
+    سؤال فعلی آزمون بانکداری + دکمه‌های گزینه‌ها را برمی‌گرداند.
+    سازگار با bot.py فعلی:
+    banking_quiz_question(index=..., score=...)
+    """
+
+    if not BANKING_QUESTIONS:
+        keyboard = [
+            [InlineKeyboardButton("🏦 بانکداری", callback_data="banking")],
+            [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
+        ]
+        return (
+            "⚠️ در حال حاضر سؤالی برای آزمون بانکداری ثبت نشده است.",
+            InlineKeyboardMarkup(keyboard),
+        )
+
+    if index < 0 or index >= len(BANKING_QUESTIONS):
+        index = 0
+
+    question = BANKING_QUESTIONS[index]
+    options = question.get("options", [])
+    total = len(BANKING_QUESTIONS)
+
+    keyboard = []
+
+    for option_index, option in enumerate(options):
+        keyboard.append([
+            InlineKeyboardButton(
+                f"{chr(65 + option_index)}) {option}",
+                callback_data=(
+                    f"banking_answer_{index}_{option_index}_{score}"
+                ),
+            )
+        ])
+
+    keyboard.append([
+        InlineKeyboardButton(
+            "🏦 بانکداری",
+            callback_data="banking",
+        ),
+        InlineKeyboardButton(
+            "🏠 منوی اصلی",
+            callback_data="home",
+        ),
+    ])
+
+    text = f"""
+📝 <b>آزمون تخصصی بانکداری</b>
+━━━━━━━━━━━━━━━━━━
+
+❓ <b>سؤال {index + 1} از {total}</b>
+
+{question.get("question", "سؤال نامشخص")}
+
+━━━━━━━━━━━━━━━━━━
+⭐ امتیاز فعلی: {score}
+
+🎯 گزینه صحیح را انتخاب کنید:
+"""
+
+    return text, InlineKeyboardMarkup(keyboard)
+
+
+# =========================================================
 # 🏆 FULL BANKING EXAM
 # =========================================================
 BANKING_FULL_EXAM_QUESTIONS = list(
