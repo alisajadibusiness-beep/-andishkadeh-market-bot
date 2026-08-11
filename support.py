@@ -1,14 +1,23 @@
+import os
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 
-# =========================================================
-# 💎 SUPPORT / DONATION
-# =========================================================
+SUPPORT_CARD_NUMBER = os.getenv(
+    "SUPPORT_CARD_NUMBER",
+    "6219861875458621",
+)
 
-CARD_NUMBER = "6219861875458621"
-CARD_DISPLAY = "6219-8618-7545-8621"
-CARD_OWNER = "علی سجادی"
+SUPPORT_CARD_DISPLAY = os.getenv(
+    "SUPPORT_CARD_DISPLAY",
+    "6219-8618-7545-8621",
+)
+
+SUPPORT_CARD_OWNER = os.getenv(
+    "SUPPORT_CARD_OWNER",
+    "علی سجادی",
+)
 
 
 def support_menu():
@@ -22,13 +31,7 @@ def support_menu():
         [
             InlineKeyboardButton(
                 "💳 پرداخت آنلاین 🔒 به‌زودی",
-                callback_data="support_online_disabled",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "📞 ارتباط با ما",
-                callback_data="social",
+                callback_data="support_online",
             )
         ],
         [
@@ -47,50 +50,29 @@ def support_text():
 💎 حمایت از اندیشکده
 ━━━━━━━━━━━━━━━━━━
 
-🌱 اندیشکده مدیریت و بازار با هدف توسعه
-آموزش‌های تخصصی، آزمون‌های حرفه‌ای،
-آزمون‌های استخدامی و ابزارهای یادگیری
-در حوزه‌های مختلف فعالیت می‌کند.
+🌱 اندیشکده مدیریت و بازار با هدف
+توسعه آموزش‌های تخصصی، آزمون‌های
+حرفه‌ای و ابزارهای یادگیری فعالیت می‌کند.
 
-❤️ اگر این ربات برای شما مفید بوده،
-می‌توانید با حمایت مالی به توسعه و
-بهبود امکانات آن کمک کنید.
-
-━━━━━━━━━━━━━━━━━━
-💚 روش فعلی حمایت
-
-📱 کارت‌به‌کارت
-
-💳 مبلغ حمایت کاملاً اختیاری است.
-
-🙏 هر مبلغی، حتی کوچک، برای ادامه
-و توسعه این پروژه ارزشمند است.
-
-━━━━━━━━━━━━━━━━━━
-"""
-
-
-def support_card_text():
-    return f"""
-📱 حمایت از طریق کارت‌به‌کارت
-━━━━━━━━━━━━━━━━━━
-
-💳 شماره کارت:
-
-{CARD_DISPLAY}
-
-👤 به نام:
-
-{CARD_OWNER}
+❤️ اگر این مجموعه برای شما مفید بوده،
+می‌توانید با حمایت مالی به ادامه توسعه
+و تولید محتوای تخصصی کمک کنید.
 
 ━━━━━━━━━━━━━━━━━━
 
-💡 مبلغ حمایت کاملاً اختیاری است.
+💚 حمایت شما صرف توسعه:
 
-پس از واریز، در صورت نیاز می‌توانید
-رسید پرداخت را برای پشتیبانی ارسال کنید.
+📚 محتوای آموزشی
+📝 آزمون‌های تخصصی
+🎯 آزمون‌های استخدامی
+📊 تحلیل عملکرد
+🚀 امکانات جدید ربات
 
-❤️ از همراهی و حمایت شما سپاسگزاریم.
+می‌شود.
+
+━━━━━━━━━━━━━━━━━━
+
+🙏 از همراهی شما سپاسگزاریم.
 """
 
 
@@ -98,13 +80,13 @@ def support_card_menu():
     keyboard = [
         [
             InlineKeyboardButton(
-                "📋 کپی شماره کارت",
-                callback_data="support_copy_card",
+                "📋 دریافت شماره کارت",
+                callback_data="support_card_copy",
             )
         ],
         [
             InlineKeyboardButton(
-                "💎 حمایت مالی",
+                "💎 حمایت از اندیشکده",
                 callback_data="support",
             )
         ],
@@ -117,6 +99,30 @@ def support_card_menu():
     ]
 
     return InlineKeyboardMarkup(keyboard)
+
+
+def support_card_text():
+    return f"""
+📱 حمایت با کارت‌به‌کارت
+━━━━━━━━━━━━━━━━━━
+
+💳 شماره کارت:
+
+{SUPPORT_CARD_DISPLAY}
+
+👤 به نام:
+
+{SUPPORT_CARD_OWNER}
+
+━━━━━━━━━━━━━━━━━━
+
+💡 مبلغ حمایت کاملاً اختیاری است.
+
+پس از واریز، در صورت تمایل می‌توانید
+رسید پرداخت را برای پشتیبانی ارسال کنید.
+
+❤️ از حمایت شما ممنونیم.
+"""
 
 
 async def support_callback(
@@ -145,62 +151,63 @@ async def support_card_callback(
     )
 
 
-async def support_copy_card_callback(
+async def support_card_copy_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer(
-        "شماره کارت برای کپی آماده است 📋",
+        "شماره کارت ارسال شد 📋",
         show_alert=True,
     )
 
     await query.message.reply_text(
-        f"💳 شماره کارت:\n\n{CARD_NUMBER}\n\n"
-        f"👤 به نام: {CARD_OWNER}"
+        f"💳 شماره کارت برای کپی:\n\n"
+        f"{SUPPORT_CARD_NUMBER}\n\n"
+        f"👤 به نام: {SUPPORT_CARD_OWNER}"
     )
 
 
-async def support_online_disabled_callback(
+async def support_online_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer()
 
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📱 کارت‌به‌کارت",
+                callback_data="support_card",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "💎 حمایت",
+                callback_data="support",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏠 منوی اصلی",
+                callback_data="home",
+            )
+        ],
+    ]
+
     await query.edit_message_text(
         """
 💳 پرداخت آنلاین
 ━━━━━━━━━━━━━━━━━━
 
-🔒 درگاه پرداخت آنلاین هنوز فعال نشده است.
+🔒 درگاه پرداخت آنلاین فعلاً فعال نیست.
 
-🚀 این بخش در نسخه بعدی با اتصال
-درگاه پرداخت معتبر فعال خواهد شد.
+🚀 این بخش در نسخه بعدی به یک
+درگاه پرداخت معتبر متصل خواهد شد.
 
-❤️ فعلاً می‌توانید از طریق
-کارت‌به‌کارت از پروژه حمایت کنید.
+❤️ در حال حاضر می‌توانید از
+روش کارت‌به‌کارت استفاده کنید.
 """,
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "📱 کارت‌به‌کارت",
-                        callback_data="support_card",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "💎 حمایت مالی",
-                        callback_data="support",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "🏠 منوی اصلی",
-                        callback_data="home",
-                    )
-                ],
-            ]
-        ),
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
