@@ -79,6 +79,13 @@ def employment_menu():
 
         [
             InlineKeyboardButton(
+                "📝 شروع آزمون استخدامی",
+                callback_data="employment_exam",
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
                 "🎤 آمادگی مصاحبه",
                 callback_data="employment_interview",
             )
@@ -635,3 +642,386 @@ def employment_full_exam_menu():
 
 def employment_interview_menu():
     return employment_back_menu()
+
+
+# =========================================================
+# 📝 EMPLOYMENT EXAM ENGINE
+# =========================================================
+# سوالات این بخش «تمرینی» هستند و جایگزین دفترچه رسمی
+# هیچ فراخوان استخدامی نیستند. مواد و شرایط هر فراخوان
+# باید از آخرین دفترچه رسمی همان آزمون کنترل شود.
+# =========================================================
+
+import random
+
+EMPLOYMENT_QUESTIONS = [
+    {
+        "category": "🏦 بانکداری",
+        "question": "کدام گزینه بیشترین ارتباط را با مدیریت نقدینگی بانک دارد؟",
+        "options": [
+            "مدیریت جریان‌های ورودی و خروجی وجوه",
+            "طراحی لوگوی بانک",
+            "تغییر نام شعب",
+            "افزایش تعداد فرم‌های اداری",
+        ],
+        "correct": 0,
+        "explanation": "مدیریت نقدینگی بر توان بانک برای ایفای تعهدات و تنظیم جریان وجوه تمرکز دارد.",
+    },
+    {
+        "category": "🏦 بانکداری",
+        "question": "هدف اصلی اعتبارسنجی مشتری چیست؟",
+        "options": [
+            "ارزیابی توان و ریسک بازپرداخت تعهدات",
+            "افزایش تعداد حساب‌های مشتری",
+            "کاهش ساعات کاری شعبه",
+            "تغییر نرخ ارز",
+        ],
+        "correct": 0,
+        "explanation": "اعتبارسنجی برای ارزیابی ریسک اعتباری و توان ایفای تعهدات مشتری استفاده می‌شود.",
+    },
+    {
+        "category": "💰 اقتصاد",
+        "question": "در حالت عادی، افزایش قیمت یک کالا با ثابت بودن سایر عوامل چه اثری بر مقدار تقاضای آن دارد؟",
+        "options": [
+            "کاهش مقدار تقاضا",
+            "افزایش قطعی مقدار تقاضا",
+            "بدون هیچ رابطه‌ای",
+            "همیشه دو برابر شدن تقاضا",
+        ],
+        "correct": 0,
+        "explanation": "طبق قانون تقاضا، با ثابت بودن سایر شرایط، افزایش قیمت معمولاً با کاهش مقدار تقاضا همراه است.",
+    },
+    {
+        "category": "💰 اقتصاد",
+        "question": "تورم به طور کلی به چه معناست؟",
+        "options": [
+            "افزایش مستمر سطح عمومی قیمت‌ها",
+            "کاهش یک‌باره قیمت یک کالا",
+            "افزایش تولید یک بنگاه",
+            "کاهش نرخ بیکاری",
+        ],
+        "correct": 0,
+        "explanation": "تورم به افزایش مداوم سطح عمومی قیمت‌ها و کاهش قدرت خرید پول اشاره دارد.",
+    },
+    {
+        "category": "👔 مدیریت",
+        "question": "کدام مورد یکی از وظایف اصلی مدیریت است؟",
+        "options": [
+            "برنامه‌ریزی",
+            "حذف کامل کنترل",
+            "نادیده گرفتن منابع",
+            "حذف تصمیم‌گیری",
+        ],
+        "correct": 0,
+        "explanation": "برنامه‌ریزی، سازماندهی، هدایت و کنترل از کارکردهای کلاسیک مدیریت هستند.",
+    },
+    {
+        "category": "👔 مدیریت",
+        "question": "اثربخشی بیشتر به کدام مفهوم نزدیک است؟",
+        "options": [
+            "دستیابی به اهداف",
+            "صرفاً کاهش هزینه",
+            "افزایش تعداد کارکنان",
+            "افزایش حجم اسناد",
+        ],
+        "correct": 0,
+        "explanation": "اثربخشی بر میزان تحقق اهداف تمرکز دارد؛ کارایی بیشتر به نسبت خروجی به منابع مربوط است.",
+    },
+    {
+        "category": "📒 حسابداری",
+        "question": "کدام رابطه پایه‌ای در حسابداری صحیح است؟",
+        "options": [
+            "دارایی = بدهی + حقوق مالکانه",
+            "دارایی = درآمد + هزینه",
+            "بدهی = دارایی + حقوق مالکانه",
+            "هزینه = دارایی + بدهی",
+        ],
+        "correct": 0,
+        "explanation": "معادله اساسی حسابداری رابطه میان دارایی‌ها، بدهی‌ها و حقوق مالکانه را نشان می‌دهد.",
+    },
+    {
+        "category": "📒 حسابداری",
+        "question": "صورت وضعیت مالی معمولاً چه چیزی را در یک تاریخ مشخص نشان می‌دهد؟",
+        "options": [
+            "دارایی‌ها، بدهی‌ها و حقوق مالکانه",
+            "فقط فروش ماهانه",
+            "فقط هزینه حقوق",
+            "فقط جریان وجوه نقد",
+        ],
+        "correct": 0,
+        "explanation": "صورت وضعیت مالی تصویر وضعیت مالی واحد اقتصادی در یک تاریخ معین است.",
+    },
+    {
+        "category": "⚖️ قوانین و مقررات",
+        "question": "در امور بانکی، رعایت مقررات مبارزه با پولشویی بیشتر با کدام هدف مرتبط است؟",
+        "options": [
+            "شناسایی و کاهش ریسک استفاده مجرمانه از نظام مالی",
+            "افزایش تبلیغات بانکی",
+            "افزایش تعداد دستگاه‌های خودپرداز",
+            "کاهش آموزش کارکنان",
+        ],
+        "correct": 0,
+        "explanation": "مقررات AML برای کاهش ریسک سوءاستفاده از نظام مالی و شناسایی فعالیت‌های مشکوک طراحی شده‌اند.",
+    },
+    {
+        "category": "🧠 هوش",
+        "question": "اگر الگوی دنباله 2، 4، 8، 16 ادامه یابد، عدد بعدی چیست؟",
+        "options": ["24", "32", "30", "36"],
+        "correct": 1,
+        "explanation": "هر عدد دو برابر عدد قبلی است؛ بنابراین عدد بعدی 32 است.",
+    },
+    {
+        "category": "🧠 هوش",
+        "question": "اگر همه Aها، B باشند و هیچ Bای C نباشد، کدام نتیجه قطعی است؟",
+        "options": [
+            "هیچ Aای C نیست",
+            "همه Cها A هستند",
+            "همه Bها A هستند",
+            "هیچ Aای B نیست",
+        ],
+        "correct": 0,
+        "explanation": "اگر A زیرمجموعه B باشد و B با C اشتراک نداشته باشد، A نیز با C اشتراک نخواهد داشت.",
+    },
+    {
+        "category": "🇬🇧 زبان انگلیسی",
+        "question": "Choose the correct option: 'The bank ___ the report yesterday.'",
+        "options": ["complete", "completed", "completing", "has complete"],
+        "correct": 1,
+        "explanation": "با قید yesterday از گذشته ساده استفاده می‌شود: completed.",
+    },
+    {
+        "category": "🇬🇧 زبان انگلیسی",
+        "question": "The closest meaning of 'reliable' is:",
+        "options": ["uncertain", "trustworthy", "expensive", "temporary"],
+        "correct": 1,
+        "explanation": "Reliable یعنی قابل اعتماد؛ نزدیک‌ترین گزینه trustworthy است.",
+    },
+    {
+        "category": "💻 فناوری اطلاعات",
+        "question": "کدام گزینه برای احراز هویت چندعاملی نمونه مناسبی است؟",
+        "options": [
+            "رمز عبور + کد یک‌بارمصرف",
+            "دو بار وارد کردن رمز عبور یکسان",
+            "نام کاربری بدون رمز",
+            "فقط نام خانوادگی",
+        ],
+        "correct": 0,
+        "explanation": "احراز هویت چندعاملی از بیش از یک عامل برای افزایش امنیت استفاده می‌کند.",
+    },
+    {
+        "category": "💻 فناوری اطلاعات",
+        "question": "Phishing معمولاً به چه نوع حمله‌ای گفته می‌شود؟",
+        "options": [
+            "فریب کاربر برای افشای اطلاعات",
+            "افزایش سرعت اینترنت",
+            "فشرده‌سازی فایل",
+            "پشتیبان‌گیری خودکار",
+        ],
+        "correct": 0,
+        "explanation": "فیشینگ با جعل هویت یا پیام‌های فریبنده تلاش می‌کند اطلاعات حساس کاربر را به دست آورد.",
+    },
+    {
+        "category": "🏦 بانکداری",
+        "question": "ریسک اعتباری به طور کلی به چه چیزی اشاره دارد؟",
+        "options": [
+            "احتمال عدم ایفای تعهد توسط طرف مقابل",
+            "احتمال قطعی برق شعبه",
+            "افزایش هزینه تبلیغات",
+            "تغییر طراحی شعبه",
+        ],
+        "correct": 0,
+        "explanation": "ریسک اعتباری از احتمال عدم ایفای تعهدات مالی توسط وام‌گیرنده یا طرف مقابل ناشی می‌شود.",
+    },
+    {
+        "category": "📊 تحلیل داده",
+        "question": "میانگین اعداد 10، 20 و 30 چند است؟",
+        "options": ["15", "20", "25", "30"],
+        "correct": 1,
+        "explanation": "مجموع 60 است و با تقسیم بر 3، میانگین برابر 20 می‌شود.",
+    },
+    {
+        "category": "🎯 آزمون استخدامی",
+        "question": "در آزمون زمان‌دار، اگر یک سؤال بسیار دشوار باشد، راهبرد مناسب‌تر چیست؟",
+        "options": [
+            "مدیریت زمان و عبور موقت از سؤال",
+            "صرف کل زمان آزمون روی همان سؤال",
+            "پاسخ تصادفی به همه سؤالات",
+            "ترک کامل آزمون",
+        ],
+        "correct": 0,
+        "explanation": "در آزمون زمان‌دار، مدیریت زمان و برگشت به سؤالات دشوار در پایان معمولاً راهبرد مناسب‌تری است.",
+    },
+    {
+        "category": "🎯 آزمون استخدامی",
+        "question": "بهترین معیار برای تشخیص نقطه ضعف مطالعاتی چیست؟",
+        "options": [
+            "تحلیل منظم پاسخ‌های غلط و درصد هر مبحث",
+            "فقط تعداد صفحات مطالعه‌شده",
+            "فقط زمان حضور در کتابخانه",
+            "تعداد پیام‌های آموزشی",
+        ],
+        "correct": 0,
+        "explanation": "تحلیل پاسخ‌های غلط و عملکرد تفکیک‌شده بر اساس مبحث، تصویر دقیق‌تری از نقاط ضعف می‌دهد.",
+    },
+]
+
+EMPLOYMENT_EXAM_SESSIONS = {}
+
+
+def employment_exam_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("5️⃣ ۵ سؤال", callback_data="employment_count_5"),
+            InlineKeyboardButton("🔟 ۱۰ سؤال", callback_data="employment_count_10"),
+        ],
+        [
+            InlineKeyboardButton("1️⃣5️⃣ ۱۵ سؤال", callback_data="employment_count_15"),
+            InlineKeyboardButton("🎲 تصادفی", callback_data="employment_count_random"),
+        ],
+        [
+            InlineKeyboardButton("🏠 منوی اصلی", callback_data="home"),
+        ],
+    ])
+
+
+def employment_exam_intro_text():
+    return f"""
+📝 <b>آزمون استخدامی تخصصی</b>
+{SEPARATOR}
+
+🎯 بانک تمرینی چندحوزه‌ای:
+🏦 بانکداری
+💰 اقتصاد
+👔 مدیریت
+📒 حسابداری
+⚖️ قوانین و مقررات
+🧠 هوش
+🇬🇧 زبان
+💻 فناوری اطلاعات
+
+{SEPARATOR}
+🔀 سوالات هر آزمون به‌صورت تصادفی انتخاب می‌شوند.
+📊 در پایان، امتیاز و درصد نمایش داده می‌شود.
+💡 برای هر پاسخ، توضیح کوتاه ارائه می‌شود.
+
+⚠️ این سوالات تمرینی‌اند و جایگزین دفترچه رسمی هیچ فراخوانی نیستند.
+
+👇 تعداد سوالات را انتخاب کنید:
+"""
+
+
+def employment_exam_start(user_id, count=10, bank_key="general"):
+    questions = list(EMPLOYMENT_QUESTIONS)
+    random.shuffle(questions)
+
+    if count == "random":
+        count = min(random.randint(5, 15), len(questions))
+    count = min(int(count), len(questions))
+
+    EMPLOYMENT_EXAM_SESSIONS[user_id] = {
+        "questions": questions[:count],
+        "current": 0,
+        "score": 0,
+        "bank_key": bank_key,
+    }
+
+
+def employment_exam_question(user_id):
+    session = EMPLOYMENT_EXAM_SESSIONS.get(user_id)
+    if not session:
+        return "❌ آزمون فعالی برای شما پیدا نشد.", employment_exam_menu()
+
+    q = session["questions"][session["current"]]
+    n = session["current"] + 1
+    total = len(session["questions"])
+
+    keyboard = []
+    for i, option in enumerate(q["options"]):
+        keyboard.append([
+            InlineKeyboardButton(
+                f"{chr(65+i)}) {option}",
+                callback_data=f"employment_answer_{session['current']}_{i}",
+            )
+        ])
+
+    keyboard.append([
+        InlineKeyboardButton("🏠 منوی اصلی", callback_data="home"),
+    ])
+
+    text = f"""
+📝 <b>آزمون استخدامی</b>
+━━━━━━━━━━━━━━━━━━
+
+📌 سؤال {n} از {total}
+🏷️ {q["category"]}
+
+❓ {q["question"]}
+
+━━━━━━━━━━━━━━━━━━
+⭐ امتیاز فعلی: {session["score"]}
+
+👇 گزینه صحیح را انتخاب کنید:
+"""
+    return text, InlineKeyboardMarkup(keyboard)
+
+
+def employment_exam_answer(user_id, selected):
+    session = EMPLOYMENT_EXAM_SESSIONS.get(user_id)
+    if not session:
+        return None
+
+    q = session["questions"][session["current"]]
+    correct = q["correct"]
+
+    if selected == correct:
+        session["score"] += 1
+        result = f"✅ صحیح!\n💡 {q['explanation']}"
+    else:
+        result = (
+            f"❌ نادرست.\n"
+            f"✅ پاسخ صحیح: {q['options'][correct]}\n"
+            f"💡 {q['explanation']}"
+        )
+
+    session["current"] += 1
+
+    if session["current"] >= len(session["questions"]):
+        total = len(session["questions"])
+        score = session["score"]
+        percentage = round(score / total * 100)
+
+        if percentage >= 80:
+            level = "🏆 عالی"
+        elif percentage >= 60:
+            level = "🟢 خوب"
+        elif percentage >= 40:
+            level = "🟡 متوسط"
+        else:
+            level = "🔴 نیازمند تقویت"
+
+        del EMPLOYMENT_EXAM_SESSIONS[user_id]
+
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🔄 آزمون مجدد", callback_data="employment_exam"),
+            ],
+            [
+                InlineKeyboardButton("🎯 مرکز استخدامی", callback_data="employment"),
+            ],
+            [
+                InlineKeyboardButton("🏠 منوی اصلی", callback_data="home"),
+            ],
+        ])
+
+        return (
+            f"🏆 <b>آزمون به پایان رسید</b>\n"
+            f"{SEPARATOR}\n"
+            f"⭐ امتیاز: {score} از {total}\n"
+            f"📊 درصد: {percentage}٪\n"
+            f"🎯 سطح: {level}\n\n"
+            f"{result}",
+            keyboard,
+        )
+
+    text, keyboard = employment_exam_question(user_id)
+    return f"{result}\n{SEPARATOR}\n{text}", keyboard
