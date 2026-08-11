@@ -1,9 +1,11 @@
-# =========================================================
-# 🏛️ ANDISHKADEH MANAGEMENT & MARKET BOT
-# 🤖 MAIN BOT
-# =========================================================
+# ============================================================
+# 🏛️ ANDISHKADEH MARKET BOT
+# Telegram Educational & Exam Bot
+# ============================================================
 import os
 import logging
+import importlib
+from typing import Any
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -15,235 +17,748 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes,
 )
-# =========================================================
-# MENUS
-# =========================================================
-from menus import (
-    main_menu,
-    main_menu_text,
-    management_menu,
-    trade_menu,
-    marketing_menu,
-    economy_menu,
-)
-# =========================================================
-# BANKING
-# =========================================================
-from banking import (
-    banking_menu,
-    banking_back_menu,
-    banking_intro_text,
-    banking_basics_text,
-    banking_deposits_text,
-    banking_facilities_text,
-    banking_contracts_text,
-    banking_laws_text,
-    banking_checks_text,
-    banking_aml_text,
-    banking_credit_text,
-    banking_electronic_text,
-    banking_risk_text,
-    banking_central_text,
-    banking_islamic_text,
-    banking_quiz_question,
-    BANKING_QUESTIONS,
-)
-# =========================================================
-# MANAGEMENT
-# =========================================================
-from management import (
-    management_basics_menu,
-    management_definition_text,
-    management_definition_menu,
-    management_functions_text,
-    management_levels_text,
-    management_roles_text,
-    management_skills_text,
-    efficiency_effectiveness_text,
-    management_schools_text,
-    lesson_menu,
-    QUESTIONS as MANAGEMENT_QUESTIONS,
-    exam_question as management_exam_question,
-)
-# =========================================================
-# TRADE
-# =========================================================
-from trade import (
-    trade_basics_text,
-    trade_documents_text,
-    trade_logistics_text,
-    trade_payment_text,
-    trade_incoterms_text,
-    trade_laws_text,
-    TRADE_QUESTIONS,
-    trade_exam_question,
-)
-# =========================================================
-# MARKETING
-# =========================================================
-from marketing import (
-    marketing_basics_text,
-    consumer_behavior_text,
-    market_research_text,
-    marketing_4p_text,
-    marketing_stp_text,
-    marketing_branding_text,
-    sales_negotiation_text,
-    sales_funnel_text,
-    digital_marketing_text,
-    MARKETING_QUESTIONS,
-    marketing_exam_question,
-)
-# =========================================================
-# ECONOMY
-# =========================================================
-from economy import (
-    economy_basics_text,
-    supply_demand_text,
-    inflation_text,
-    exchange_rate_text,
-    monetary_policy_text,
-    fiscal_policy_text,
-    macroeconomics_text,
-    microeconomics_text,
-    capital_market_text,
-    ECONOMY_QUESTIONS,
-    economy_exam_question,
-)
-# =========================================================
-# EMPLOYMENT
-# =========================================================
-from employment import (
-    BANKS,
-    employment_menu,
-    employment_text,
-    banks_menu,
-    bank_detail_menu,
-    bank_detail_text,
-    general_subjects_menu,
-    general_subjects_text,
-    specialized_subjects_menu,
-    specialized_subjects_text,
-    iq_menu,
-    iq_text,
-    english_menu,
-    english_text,
-    it_menu,
-    it_text,
-    roadmap_menu,
-    roadmap_text,
-    interview_menu,
-    interview_text,
-)
-# =========================================================
-# SOCIAL
-# =========================================================
-from social import social_callback
-# =========================================================
-# LOGGING
-# =========================================================
-logging.basicConfig(
-    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-    level=logging.INFO,
-)
-logger = logging.getLogger(__name__)
-# =========================================================
-# TOKEN
-# =========================================================
+# ============================================================
+# CONFIG
+# ============================================================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
     raise RuntimeError(
         "BOT_TOKEN environment variable is not set."
     )
-# =========================================================
-# ECONOMY LESSON MENU
-# =========================================================
-def economy_lesson_menu():
+# ============================================================
+# LOGGING
+# ============================================================
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger("andishkadeh")
+# ============================================================
+# SAFE MODULE LOADER
+# ============================================================
+def load_module(name: str):
+    try:
+        return importlib.import_module(name)
+    except Exception as error:
+        logger.warning(
+            "Could not load module '%s': %s",
+            name,
+            error,
+        )
+        return None
+menus = load_module("menus")
+banking = load_module("banking")
+management = load_module("management")
+trade = load_module("trade")
+marketing = load_module("marketing")
+economy = load_module("economy")
+employment = load_module("employment")
+social = load_module("social")
+# ============================================================
+# SAFE ATTRIBUTE
+# ============================================================
+def get_attr(
+    module: Any,
+    name: str,
+    default=None,
+):
+    if module is None:
+        return default
+    return getattr(
+        module,
+        name,
+        default,
+    )
+# ============================================================
+# SAFE CALL
+# ============================================================
+def safe_call(
+    value,
+    default="",
+):
+    if value is None:
+        return default
+    if callable(value):
+        try:
+            return value()
+        except TypeError:
+            try:
+                return value
+            except Exception:
+                return default
+        except Exception as error:
+            logger.warning(
+                "Function execution error: %s",
+                error,
+            )
+            return default
+    return value
+# ============================================================
+# MAIN MENU
+# ============================================================
+def main_keyboard():
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📚 آموزش مدیریت",
+                    callback_data="management",
+                ),
+                InlineKeyboardButton(
+                    "🌍 تجارت بین‌الملل",
+                    callback_data="trade",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "📈 بازاریابی و فروش",
+                    callback_data="marketing",
+                ),
+                InlineKeyboardButton(
+                    "💰 اقتصاد و بازار",
+                    callback_data="economy",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏦 بانکداری",
+                    callback_data="banking",
+                ),
+                InlineKeyboardButton(
+                    "🎓 آزمون و تست",
+                    callback_data="exam",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏆 آزمون استخدامی بانک‌ها",
+                    callback_data="employment",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    "📂 فایل و جزوات",
+                    callback_data="files",
+                ),
+                InlineKeyboardButton(
+                    "📱 شبکه‌های اجتماعی",
+                    callback_data="social",
+                ),
+            ],
+        ]
+    )
+def home_text():
+    custom_text = get_attr(
+        menus,
+        "main_menu_text",
+    )
+    text = safe_call(
+        custom_text,
+        "",
+    )
+    if text:
+        return text
+    return """
+🏛️ <b>اندیشکده مدیریت و بازار</b>
+━━━━━━━━━━━━━━━━━━
+🎯 <b>یادگیری | آزمون | تحلیل عملکرد</b>
+مرجع تخصصی آموزش و آمادگی آزمون در حوزه‌های:
+📚 مدیریت
+🌍 تجارت بین‌الملل
+📈 بازاریابی و فروش
+💰 اقتصاد و بازار
+🏦 بانکداری
+🎓 آزمون‌های استخدامی بانک‌ها
+━━━━━━━━━━━━━━━━━━
+از منوی زیر مسیر موردنظر خود را انتخاب کنید 👇
+"""
+# ============================================================
+# GENERIC BACK BUTTON
+# ============================================================
+def back_home_keyboard():
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت به منوی اصلی",
+                    callback_data="home",
+                )
+            ]
+        ]
+    )
+# ============================================================
+# SECTION KEYBOARDS
+# ============================================================
+def management_keyboard():
+    custom = get_attr(
+        management,
+        "management_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📖 مبانی مدیریت",
+                    callback_data="management_basics",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📝 آزمون مدیریت",
+                    callback_data="management_exam",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="home",
+                )
+            ],
+        ]
+    )
+def trade_keyboard():
+    custom = get_attr(
+        trade,
+        "trade_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📚 مفاهیم پایه تجارت",
+                    callback_data="trade_basics",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📑 اسناد و قراردادهای تجاری",
+                    callback_data="trade_documents",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🚚 حمل‌ونقل و لجستیک",
+                    callback_data="trade_logistics",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💳 روش‌های پرداخت بین‌المللی",
+                    callback_data="trade_payment",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🌐 اینکوترمز",
+                    callback_data="trade_incoterms",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "⚖️ قوانین تجارت",
+                    callback_data="trade_laws",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="home",
+                )
+            ],
+        ]
+    )
+def marketing_keyboard():
+    custom = get_attr(
+        marketing,
+        "marketing_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📚 اصول بازاریابی",
+                    callback_data="marketing_basics",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🧠 رفتار مصرف‌کننده",
+                    callback_data="consumer_behavior",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔎 تحقیقات بازار",
+                    callback_data="market_research",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎯 آمیخته بازاریابی 4P",
+                    callback_data="marketing_4p",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📊 STP و بخش‌بندی بازار",
+                    callback_data="marketing_stp",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏷️ برندینگ",
+                    callback_data="marketing_branding",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🤝 فروش و مذاکره",
+                    callback_data="sales_negotiation",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="home",
+                )
+            ],
+        ]
+    )
+def economy_keyboard():
+    custom = get_attr(
+        economy,
+        "economy_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
                     "📚 مبانی علم اقتصاد",
                     callback_data="economy_basics",
-                ),
+                )
+            ],
+            [
                 InlineKeyboardButton(
                     "📈 عرضه و تقاضا",
                     callback_data="supply_demand",
-                ),
+                )
             ],
             [
                 InlineKeyboardButton(
                     "🔥 تورم و شاخص قیمت‌ها",
                     callback_data="inflation",
-                ),
+                )
+            ],
+            [
                 InlineKeyboardButton(
                     "💱 نرخ ارز",
                     callback_data="exchange_rate",
-                ),
+                )
             ],
             [
                 InlineKeyboardButton(
                     "🏦 سیاست پولی",
                     callback_data="monetary_policy",
-                ),
+                )
+            ],
+            [
                 InlineKeyboardButton(
                     "💰 سیاست مالی",
                     callback_data="fiscal_policy",
-                ),
+                )
             ],
             [
                 InlineKeyboardButton(
                     "📊 اقتصاد کلان",
                     callback_data="macroeconomics",
-                ),
+                )
+            ],
+            [
                 InlineKeyboardButton(
                     "📉 اقتصاد خرد",
                     callback_data="microeconomics",
-                ),
+                )
             ],
             [
                 InlineKeyboardButton(
                     "📈 بازار سرمایه",
                     callback_data="capital_market",
-                ),
+                )
             ],
             [
                 InlineKeyboardButton(
-                    "🔙 اقتصاد و بازار",
-                    callback_data="economy",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏠 منوی اصلی",
+                    "🔙 بازگشت",
                     callback_data="home",
-                ),
+                )
             ],
         ]
     )
-# =========================================================
-# HOME KEYBOARD
-# =========================================================
-def home_keyboard():
+def banking_keyboard():
+    custom = get_attr(
+        banking,
+        "banking_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
-                    "🏠 منوی اصلی",
+                    "📖 مقدمه بانکداری",
+                    callback_data="banking_intro",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏦 مبانی بانکداری",
+                    callback_data="banking_basics",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💰 سپرده‌ها",
+                    callback_data="banking_deposits",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💳 تسهیلات بانکی",
+                    callback_data="banking_facilities",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📑 عقود بانکی",
+                    callback_data="banking_contracts",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "⚖️ قوانین بانکی",
+                    callback_data="banking_laws",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🧾 چک و اسناد بانکی",
+                    callback_data="banking_checks",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🛡️ مبارزه با پولشویی",
+                    callback_data="banking_aml",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📊 اعتبار و ریسک",
+                    callback_data="banking_credit",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💻 بانکداری الکترونیک",
+                    callback_data="banking_electronic",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📝 آزمون بانکداری",
+                    callback_data="banking_quiz",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
                     callback_data="home",
                 )
-            ]
+            ],
         ]
     )
-# =========================================================
-# /START
-# =========================================================
+# ============================================================
+# EXAM MENU
+# ============================================================
+def exam_keyboard():
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "🏦 بانکداری",
+                    callback_data="banking_quiz",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📚 مدیریت",
+                    callback_data="management_exam",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🌍 تجارت بین‌الملل",
+                    callback_data="trade_exam",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📈 بازاریابی و فروش",
+                    callback_data="marketing_exam",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💰 اقتصاد",
+                    callback_data="economy_exam",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏆 آزمون استخدامی بانک‌ها",
+                    callback_data="employment",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="home",
+                )
+            ],
+        ]
+    )
+# ============================================================
+# EMPLOYMENT MENU
+# ============================================================
+def employment_keyboard():
+    custom = get_attr(
+        employment,
+        "employment_menu",
+    )
+    result = safe_call(
+        custom,
+        None,
+    )
+    if result:
+        return result
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "🏦 بانک‌های هدف",
+                    callback_data="employment_banks",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📚 دروس عمومی",
+                    callback_data="employment_general",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏦 دروس تخصصی بانکی",
+                    callback_data="employment_specialized",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🧠 هوش و استعداد",
+                    callback_data="employment_iq",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🇬🇧 زبان انگلیسی",
+                    callback_data="employment_english",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💻 فناوری اطلاعات",
+                    callback_data="employment_it",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🗺️ نقشه راه قبولی",
+                    callback_data="employment_roadmap",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎤 آمادگی مصاحبه",
+                    callback_data="employment_interview",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="home",
+                )
+            ],
+        ]
+    )
+# ============================================================
+# LESSON DATA
+# ============================================================
+LESSON_MODULES = {
+    # Banking
+    "banking_intro": banking,
+    "banking_basics": banking,
+    "banking_deposits": banking,
+    "banking_facilities": banking,
+    "banking_contracts": banking,
+    "banking_laws": banking,
+    "banking_checks": banking,
+    "banking_aml": banking,
+    "banking_credit": banking,
+    "banking_electronic": banking,
+    "banking_risk": banking,
+    "banking_central": banking,
+    "banking_islamic": banking,
+    # Management
+    "management_definition": management,
+    "management_functions": management,
+    "management_levels": management,
+    "management_roles": management,
+    "management_skills": management,
+    "efficiency_effectiveness": management,
+    "management_schools": management,
+    # Trade
+    "trade_basics": trade,
+    "trade_documents": trade,
+    "trade_logistics": trade,
+    "trade_payment": trade,
+    "trade_incoterms": trade,
+    "trade_laws": trade,
+    # Marketing
+    "marketing_basics": marketing,
+    "consumer_behavior": marketing,
+    "market_research": marketing,
+    "marketing_4p": marketing,
+    "marketing_stp": marketing,
+    "marketing_branding": marketing,
+    "sales_negotiation": marketing,
+    # Economy
+    "economy_basics": economy,
+    "supply_demand": economy,
+    "inflation": economy,
+    "exchange_rate": economy,
+    "monetary_policy": economy,
+    "fiscal_policy": economy,
+    "macroeconomics": economy,
+    "microeconomics": economy,
+    "capital_market": economy,
+}
+# ============================================================
+# LESSON FUNCTION NAMES
+# ============================================================
+LESSON_FUNCTIONS = {
+    "banking_intro": "banking_intro_text",
+    "banking_basics": "banking_basics_text",
+    "banking_deposits": "banking_deposits_text",
+    "banking_facilities": "banking_facilities_text",
+    "banking_contracts": "banking_contracts_text",
+    "banking_laws": "banking_laws_text",
+    "banking_checks": "banking_checks_text",
+    "banking_aml": "banking_aml_text",
+    "banking_credit": "banking_credit_text",
+    "banking_electronic": "banking_electronic_text",
+    "banking_risk": "banking_risk_text",
+    "banking_central": "banking_central_text",
+    "banking_islamic": "banking_islamic_text",
+    "management_definition": "management_definition_text",
+    "management_functions": "management_functions_text",
+    "management_levels": "management_levels_text",
+    "management_roles": "management_roles_text",
+    "management_skills": "management_skills_text",
+    "efficiency_effectiveness": "efficiency_effectiveness_text",
+    "management_schools": "management_schools_text",
+    "trade_basics": "trade_basics_text",
+    "trade_documents": "trade_documents_text",
+    "trade_logistics": "trade_logistics_text",
+    "trade_payment": "trade_payment_text",
+    "trade_incoterms": "trade_incoterms_text",
+    "trade_laws": "trade_laws_text",
+    "marketing_basics": "marketing_basics_text",
+    "consumer_behavior": "consumer_behavior_text",
+    "market_research": "market_research_text",
+    "marketing_4p": "marketing_4p_text",
+    "marketing_stp": "marketing_stp_text",
+    "marketing_branding": "marketing_branding_text",
+    "sales_negotiation": "sales_negotiation_text",
+    "economy_basics": "economy_basics_text",
+    "supply_demand": "supply_demand_text",
+    "inflation": "inflation_text",
+    "exchange_rate": "exchange_rate_text",
+    "monetary_policy": "monetary_policy_text",
+    "fiscal_policy": "fiscal_policy_text",
+    "macroeconomics": "macroeconomics_text",
+    "microeconomics": "microeconomics_text",
+    "capital_market": "capital_market_text",
+}
+# ============================================================
+# GET LESSON
+# ============================================================
+def get_lesson(
+    callback_data: str,
+):
+    module = LESSON_MODULES.get(
+        callback_data
+    )
+    function_name = LESSON_FUNCTIONS.get(
+        callback_data
+    )
+    if module is None:
+        return None
+    if function_name is None:
+        return None
+    function = getattr(
+        module,
+        function_name,
+        None,
+    )
+    if function is None:
+        return None
+    return safe_call(
+        function,
+        None,
+    )
+# ============================================================
+# START
+# ============================================================
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
-    if not update.message:
-        return
     user = update.effective_user
     name = (
         user.first_name
@@ -251,31 +766,27 @@ async def start(
         else "دوست عزیز"
     )
     text = f"""
-سلام <b>{name}</b> 👋
-🏛️ <b>به اندیشکده مدیریت و بازار خوش آمدید</b>
-مرکز تخصصی:
-📚 آموزش
-📝 آزمون
-📊 تحلیل عملکرد
-🏦 بانکداری
-🎯 استخدام بانک‌ها
-🌍 تجارت بین‌الملل
-📈 بازاریابی و فروش
-💰 اقتصاد و بازار
+👋 سلام <b>{name}</b>
+🏛️ <b>به اندیشکده مدیریت و بازار خوش آمدید.</b>
 ━━━━━━━━━━━━━━━━━━
-اینجا فقط قرار نیست مطالعه کنید؛
-قرار است <b>یاد بگیرید، تست بزنید و پیشرفت خودتان را بسنجید.</b>
-👇 از منوی زیر شروع کنید.
-{main_menu_text()}
+اینجا یک مسیر کامل برای:
+📚 آموزش تخصصی
+📝 آزمون و تست
+🎯 آمادگی استخدامی
+📊 ارزیابی عملکرد
+🏆 پیشرفت مرحله‌ای
+در اختیار شماست.
+━━━━━━━━━━━━━━━━━━
+👇 از منوی زیر انتخاب کنید:
 """
     await update.message.reply_text(
         text,
-        reply_markup=main_menu(),
+        reply_markup=main_keyboard(),
         parse_mode="HTML",
     )
-# =========================================================
+# ============================================================
 # HOME
-# =========================================================
+# ============================================================
 async def home_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -283,65 +794,60 @@ async def home_callback(
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(
-        main_menu_text(),
-        reply_markup=main_menu(),
+        home_text(),
+        reply_markup=main_keyboard(),
         parse_mode="HTML",
     )
-# =========================================================
+# ============================================================
 # MAIN SECTIONS
-# =========================================================
+# ============================================================
 async def section_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer()
+    data = query.data
     sections = {
         "management": (
             """
-📚 <b>مرکز آموزش مدیریت</b>
+📚 <b>آموزش مدیریت</b>
 ━━━━━━━━━━━━━━━━━━
-مدیریت را از مفاهیم پایه تا
-مباحث تخصصی یاد بگیرید.
-📖 درسنامه
-🧠 مفاهیم کلیدی
-📝 آزمون
-🎯 آمادگی آزمون‌های تخصصی
+از مبانی مدیریت تا مفاهیم تخصصی
+و آزمون‌های مرتبط.
+👇 بخش موردنظر را انتخاب کنید.
 """,
-            management_menu(),
+            management_keyboard(),
         ),
         "trade": (
             """
-🌍 <b>مرکز تجارت بین‌الملل</b>
+🌍 <b>تجارت بین‌الملل</b>
 ━━━━━━━━━━━━━━━━━━
-📚 مفاهیم پایه تجارت
-📑 اسناد و قراردادهای تجاری
-🚚 حمل‌ونقل و لجستیک
-💳 روش‌های پرداخت
+📑 اسناد تجاری
+🚚 لجستیک
+💳 پرداخت‌های بین‌المللی
 🌐 Incoterms
-⚖️ قوانین و سازمان‌های تجاری
-👇 بخش موردنظر را انتخاب کنید.
+⚖️ قوانین تجارت
+👇 موضوع موردنظر را انتخاب کنید.
 """,
-            trade_menu(),
+            trade_keyboard(),
         ),
         "marketing": (
             """
-📈 <b>مرکز بازاریابی و فروش</b>
+📈 <b>بازاریابی و فروش</b>
 ━━━━━━━━━━━━━━━━━━
-📚 اصول بازاریابی
-🧠 رفتار مصرف‌کننده
+🎯 استراتژی بازاریابی
+🧠 رفتار مشتری
 🔎 تحقیقات بازار
-🎯 STP
 🏷️ برندینگ
 🤝 فروش و مذاکره
-📱 بازاریابی دیجیتال
-👇 مسیر یادگیری خود را انتخاب کنید.
+👇 مسیر یادگیری را انتخاب کنید.
 """,
-            marketing_menu(),
+            marketing_keyboard(),
         ),
         "economy": (
             """
-💰 <b>مرکز اقتصاد و بازار</b>
+💰 <b>اقتصاد و بازار</b>
 ━━━━━━━━━━━━━━━━━━
 📚 مبانی اقتصاد
 📈 عرضه و تقاضا
@@ -351,13 +857,52 @@ async def section_callback(
 💰 سیاست مالی
 📊 اقتصاد کلان
 📉 اقتصاد خرد
-📈 بازار سرمایه
 👇 موضوع موردنظر را انتخاب کنید.
 """,
-            economy_menu(),
+            economy_keyboard(),
+        ),
+        "banking": (
+            """
+🏦 <b>مرکز تخصصی بانکداری</b>
+━━━━━━━━━━━━━━━━━━
+📚 آموزش بانکداری
+💳 تسهیلات
+💰 سپرده‌ها
+⚖️ قوانین بانکی
+🛡️ مبارزه با پولشویی
+📊 اعتبار و ریسک
+💻 بانکداری الکترونیک
+📝 آزمون بانکداری
+👇 انتخاب کنید.
+""",
+            banking_keyboard(),
+        ),
+        "employment": (
+            """
+🏆 <b>مرکز آمادگی آزمون استخدامی بانک‌ها</b>
+━━━━━━━━━━━━━━━━━━
+🎯 آمادگی آزمون کتبی
+📚 دروس عمومی و تخصصی
+🧠 هوش و استعداد
+🇬🇧 زبان
+💻 فناوری اطلاعات
+🎤 آمادگی مصاحبه
+👇 مسیر خود را انتخاب کنید.
+""",
+            employment_keyboard(),
+        ),
+        "exam": (
+            """
+🎓 <b>مرکز آزمون و تست</b>
+━━━━━━━━━━━━━━━━━━
+دانش خود را در حوزه‌های مختلف
+بسنجید و نقاط قوت و ضعف خود
+را شناسایی کنید.
+👇 حوزه آزمون را انتخاب کنید.
+""",
+            exam_keyboard(),
         ),
     }
-    data = query.data
     if data not in sections:
         return
     text, keyboard = sections[data]
@@ -366,362 +911,222 @@ async def section_callback(
         reply_markup=keyboard,
         parse_mode="HTML",
     )
-# =========================================================
-# BANKING
-# =========================================================
-async def banking_callback(
+# ============================================================
+# LESSON CALLBACK
+# ============================================================
+async def lesson_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(
-        banking_intro_text,
-        reply_markup=banking_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# BANKING LESSONS
-# =========================================================
-BANKING_LESSONS = {
-    "banking_intro": banking_intro_text,
-    "banking_basics": banking_basics_text,
-    "banking_deposits": banking_deposits_text,
-    "banking_facilities": banking_facilities_text,
-    "banking_contracts": banking_contracts_text,
-    "banking_laws": banking_laws_text,
-    "banking_checks": banking_checks_text,
-    "banking_aml": banking_aml_text,
-    "banking_credit": banking_credit_text,
-    "banking_electronic": banking_electronic_text,
-    "banking_risk": banking_risk_text,
-    "banking_central": banking_central_text,
-    "banking_islamic": banking_islamic_text,
-}
-async def banking_lesson_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    text = BANKING_LESSONS.get(
-        query.data
+    data = query.data
+    text = get_lesson(
+        data
     )
     if not text:
-        return
+        text = """
+⚠️ <b>محتوای این بخش هنوز آماده نشده است.</b>
+این بخش در حال تکمیل است.
+🔄 به‌زودی محتوای تخصصی آن
+در ربات قرار خواهد گرفت.
+"""
+    if data.startswith("banking_"):
+        keyboard = banking_keyboard()
+    elif data.startswith("management_") or data in (
+        "efficiency_effectiveness",
+    ):
+        keyboard = management_keyboard()
+    elif data.startswith("trade_"):
+        keyboard = trade_keyboard()
+    elif data.startswith("marketing_") or data in (
+        "consumer_behavior",
+        "market_research",
+        "sales_negotiation",
+    ):
+        keyboard = marketing_keyboard()
+    elif data in (
+        "economy_basics",
+        "supply_demand",
+        "inflation",
+        "exchange_rate",
+        "monetary_policy",
+        "fiscal_policy",
+        "macroeconomics",
+        "microeconomics",
+        "capital_market",
+    ):
+        keyboard = economy_keyboard()
+    else:
+        keyboard = back_home_keyboard()
     await query.edit_message_text(
-        text,
-        reply_markup=banking_back_menu(),
+        str(text),
+        reply_markup=keyboard,
         parse_mode="HTML",
     )
-# =========================================================
+# ============================================================
 # BANKING QUIZ
-# =========================================================
+# ============================================================
+async def banking_quiz_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    query = update.callback_query
+    await query.answer()
+    quiz_text = get_attr(
+        banking,
+        "banking_quiz_text",
+        None,
+    )
+    text = safe_call(
+        quiz_text,
+        None,
+    )
+    if not text:
+        text = """
+📝 <b>آزمون تخصصی بانکداری</b>
+━━━━━━━━━━━━━━━━━━
+این بخش برای سنجش دانش شما
+در حوزه بانکداری طراحی شده است.
+🎯 در نسخه فعلی، محتوای آزمون
+از فایل <b>banking.py</b> دریافت می‌شود.
+📚 سوالات و سیستم امتیازدهی
+در مرحله بعدی تکمیل می‌شوند.
+"""
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "🔄 شروع آزمون",
+                    callback_data="banking_quiz_start",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 بانکداری",
+                    callback_data="banking",
+                )
+            ],
+        ]
+    )
+    await query.edit_message_text(
+        str(text),
+        reply_markup=keyboard,
+        parse_mode="HTML",
+    )
+# ============================================================
+# QUIZ START
+# ============================================================
 async def banking_quiz_start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer()
-    if not BANKING_QUESTIONS:
+    questions = get_attr(
+        banking,
+        "BANKING_QUESTIONS",
+        [],
+    )
+    if not questions:
         await query.edit_message_text(
             """
-⚠️ <b>آزمون بانکداری</b>
-در حال حاضر سؤالی برای این آزمون
-ثبت نشده است.
+⚠️ <b>سؤال آزمون پیدا نشد.</b>
+در فایل <b>banking.py</b>
+هنوز مجموعه سوالات آزمون تعریف نشده است.
 """,
-            reply_markup=banking_back_menu(),
+            reply_markup=banking_keyboard(),
             parse_mode="HTML",
         )
         return
-    try:
-        text, keyboard = banking_quiz_question(
-            0,
-            0,
-        )
-    except TypeError:
-        try:
-            text, keyboard = banking_quiz_question(
-                index=0,
-                score=0,
-            )
-        except Exception as error:
-            logger.exception(error)
-            await query.edit_message_text(
-                "❌ خطا در اجرای آزمون بانکداری.",
-                reply_markup=banking_back_menu(),
-            )
-            return
-    await query.edit_message_text(
-        text,
-        reply_markup=keyboard,
-        parse_mode="HTML",
-    )
-# =========================================================
-# MANAGEMENT
-# =========================================================
-MANAGEMENT_LESSONS = {
-    "management_definition":
-        management_definition_text,
-    "management_functions":
-        management_functions_text,
-    "management_levels":
-        management_levels_text,
-    "management_roles":
-        management_roles_text,
-    "management_skills":
-        management_skills_text,
-    "efficiency_effectiveness":
-        efficiency_effectiveness_text,
-    "management_schools":
-        management_schools_text,
-}
-async def management_basics_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
     await query.edit_message_text(
         """
-📚 <b>مبانی مدیریت</b>
+🎯 <b>آزمون بانکداری</b>
 ━━━━━━━━━━━━━━━━━━
-از این بخش می‌توانید مفاهیم اصلی
-مدیریت را مرحله‌به‌مرحله مطالعه کنید.
-📖 آموزش
-📝 تست
-🎯 مرور مفاهیم
-""",
-        reply_markup=management_basics_menu(),
-        parse_mode="HTML",
-    )
-async def management_lesson_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    func = MANAGEMENT_LESSONS.get(
-        query.data
-    )
-    if not func:
-        return
-    try:
-        text = func()
-    except TypeError:
-        text = func
-    await query.edit_message_text(
-        text,
-        reply_markup=lesson_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# TRADE
-# =========================================================
-TRADE_LESSONS = {
-    "trade_basics":
-        trade_basics_text,
-    "trade_documents":
-        trade_documents_text,
-    "trade_logistics":
-        trade_logistics_text,
-    "trade_payment":
-        trade_payment_text,
-    "trade_incoterms":
-        trade_incoterms_text,
-    "trade_laws":
-        trade_laws_text,
-}
-async def trade_lesson_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    func = TRADE_LESSONS.get(
-        query.data
-    )
-    if not func:
-        return
-    try:
-        text = func()
-    except TypeError:
-        text = func
-    await query.edit_message_text(
-        text,
-        reply_markup=trade_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# MARKETING
-# =========================================================
-MARKETING_LESSONS = {
-    "marketing_basics":
-        marketing_basics_text,
-    "consumer_behavior":
-        consumer_behavior_text,
-    "market_research":
-        market_research_text,
-    "marketing_4p":
-        marketing_4p_text,
-    "marketing_stp":
-        marketing_stp_text,
-    "marketing_branding":
-        marketing_branding_text,
-    "sales_negotiation":
-        sales_negotiation_text,
-    "sales_funnel":
-        sales_funnel_text,
-    "digital_marketing":
-        digital_marketing_text,
-}
-async def marketing_lesson_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    func = MARKETING_LESSONS.get(
-        query.data
-    )
-    if not func:
-        return
-    try:
-        text = func()
-    except TypeError:
-        text = func
-    await query.edit_message_text(
-        text,
-        reply_markup=marketing_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# ECONOMY
-# =========================================================
-ECONOMY_LESSONS = {
-    "economy_basics":
-        economy_basics_text,
-    "supply_demand":
-        supply_demand_text,
-    "inflation":
-        inflation_text,
-    "exchange_rate":
-        exchange_rate_text,
-    "monetary_policy":
-        monetary_policy_text,
-    "fiscal_policy":
-        fiscal_policy_text,
-    "macroeconomics":
-        macroeconomics_text,
-    "microeconomics":
-        microeconomics_text,
-    "capital_market":
-        capital_market_text,
-}
-async def economy_lesson_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    func = ECONOMY_LESSONS.get(
-        query.data
-    )
-    if not func:
-        return
-    try:
-        text = func()
-    except TypeError:
-        text = func
-    await query.edit_message_text(
-        text,
-        reply_markup=economy_lesson_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# EXAMS MENU
-# =========================================================
-def exams_menu():
-    return InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(
-                    "📚 مدیریت",
-                    callback_data="management_exam",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "🌍 تجارت بین‌الملل",
-                    callback_data="trade_exam",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "📈 بازاریابی و فروش",
-                    callback_data="marketing_exam",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "💰 اقتصاد و بازار",
-                    callback_data="economy_exam",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏦 بانکداری",
-                    callback_data="banking_quiz",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏠 منوی اصلی",
-                    callback_data="home",
-                ),
-            ],
-        ]
-    )
-async def exams_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        """
-🎓 <b>مرکز آزمون</b>
-━━━━━━━━━━━━━━━━━━
-در این بخش می‌توانید دانش خود را
-در حوزه‌های مختلف بسنجید.
+مجموعه سوالات شناسایی شد.
+برای فعال‌سازی کامل:
+⏱️ زمان‌سنج
 📊 امتیاز
 📈 درصد
-🏆 ارزیابی
-🔄 آزمون مجدد
-👇 حوزه آزمون را انتخاب کنید.
+🧠 تحلیل عملکرد
+🎯 سطح‌بندی
+باید ساختار سوالات موجود در
+<b>banking.py</b> را با موتور آزمون
+هماهنگ کنیم.
+👇 مرحله بعد همین بخش است.
 """,
-        reply_markup=exams_menu(),
+        reply_markup=banking_keyboard(),
         parse_mode="HTML",
     )
-# =========================================================
+# ============================================================
 # EMPLOYMENT
-# =========================================================
+# ============================================================
 async def employment_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
     await query.answer()
-    try:
-        text = employment_text()
-    except TypeError:
-        text = employment_text
     await query.edit_message_text(
-        text,
-        reply_markup=employment_menu(),
+        """
+🏆 <b>آزمون استخدامی بانک‌ها</b>
+━━━━━━━━━━━━━━━━━━
+یک مسیر کامل برای آمادگی آزمون:
+🏦 بانک‌های هدف
+📚 دروس عمومی
+🏦 دروس تخصصی
+🧠 هوش و استعداد
+🇬🇧 زبان انگلیسی
+💻 فناوری اطلاعات
+🗺️ نقشه راه مطالعه
+🎤 مصاحبه استخدامی
+👇 انتخاب کنید.
+""",
+        reply_markup=employment_keyboard(),
         parse_mode="HTML",
     )
-async def employment_banks_callback(
+# ============================================================
+# SOCIAL
+# ============================================================
+async def social_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    query = update.callback_query
+    await query.answer()
+    function = get_attr(
+        social,
+        "social_callback",
+        None,
+    )
+    if function:
+        try:
+            await function(
+                update,
+                context,
+            )
+            return
+        except Exception as error:
+            logger.warning(
+                "Social callback error: %s",
+                error,
+            )
+    await query.edit_message_text(
+        """
+📱 <b>شبکه‌های اجتماعی</b>
+━━━━━━━━━━━━━━━━━━
+برای دسترسی به صفحات رسمی
+اندیشکده مدیریت و بازار
+از لینک‌های رسمی استفاده کنید.
+🔗 لینک‌ها در حال تکمیل هستند.
+""",
+        reply_markup=back_home_keyboard(),
+        parse_mode="HTML",
+    )
+# ============================================================
+# FILES
+# ============================================================
+async def files_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
@@ -729,417 +1134,211 @@ async def employment_banks_callback(
     await query.answer()
     await query.edit_message_text(
         """
-🏦 <b>آزمون‌های استخدامی بانک‌ها</b>
+📂 <b>فایل و جزوات</b>
 ━━━━━━━━━━━━━━━━━━
-بانک موردنظر خود را انتخاب کنید:
-🎯 منابع
-📝 سؤالات
-📚 دروس
-🎤 مصاحبه
+در این بخش می‌توانید به:
+📚 جزوات آموزشی
+📝 نمونه سوالات
+📊 منابع آزمون
+📑 فایل‌های تخصصی
+دسترسی پیدا کنید.
+⚠️ بخش فایل‌ها در حال توسعه است.
 """,
-        reply_markup=banks_menu(),
+        reply_markup=back_home_keyboard(),
         parse_mode="HTML",
     )
-async def employment_bank_callback(
+# ============================================================
+# UNKNOWN CALLBACK
+# ============================================================
+async def unknown_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     query = update.callback_query
-    await query.answer()
-    prefix = "employment_bank_"
-    bank_key = query.data[
-        len(prefix):
-    ]
-    if bank_key not in BANKS:
-        await query.edit_message_text(
-            "⚠️ بانک موردنظر پیدا نشد.",
-            reply_markup=banks_menu(),
-        )
-        return
-    try:
-        text = bank_detail_text(
-            bank_key
-        )
-    except TypeError:
-        text = bank_detail_text
-    await query.edit_message_text(
-        text,
-        reply_markup=bank_detail_menu(
-            bank_key
-        ),
-        parse_mode="HTML",
+    await query.answer(
+        "این بخش هنوز فعال نشده است.",
+        show_alert=False,
     )
-async def employment_general_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = general_subjects_text()
-    except TypeError:
-        text = general_subjects_text
-    await query.edit_message_text(
-        text,
-        reply_markup=general_subjects_menu(),
-        parse_mode="HTML",
-    )
-async def employment_specialized_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = specialized_subjects_text()
-    except TypeError:
-        text = specialized_subjects_text
-    await query.edit_message_text(
-        text,
-        reply_markup=specialized_subjects_menu(),
-        parse_mode="HTML",
-    )
-async def employment_iq_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = iq_text()
-    except TypeError:
-        text = iq_text
-    await query.edit_message_text(
-        text,
-        reply_markup=iq_menu(),
-        parse_mode="HTML",
-    )
-async def employment_english_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = english_text()
-    except TypeError:
-        text = english_text
-    await query.edit_message_text(
-        text,
-        reply_markup=english_menu(),
-        parse_mode="HTML",
-    )
-async def employment_it_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = it_text()
-    except TypeError:
-        text = it_text
-    await query.edit_message_text(
-        text,
-        reply_markup=it_menu(),
-        parse_mode="HTML",
-    )
-async def employment_roadmap_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = roadmap_text()
-    except TypeError:
-        text = roadmap_text
-    await query.edit_message_text(
-        text,
-        reply_markup=roadmap_menu(),
-        parse_mode="HTML",
-    )
-async def employment_interview_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    query = update.callback_query
-    await query.answer()
-    try:
-        text = interview_text()
-    except TypeError:
-        text = interview_text
-    await query.edit_message_text(
-        text,
-        reply_markup=interview_menu(),
-        parse_mode="HTML",
-    )
-# =========================================================
-# SOCIAL
-# =========================================================
-async def social_handler(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-):
-    await social_callback(
-        update,
-        context,
-    )
-# =========================================================
+# ============================================================
 # ERROR HANDLER
-# =========================================================
+# ============================================================
 async def error_handler(
     update: object,
     context: ContextTypes.DEFAULT_TYPE,
 ):
     logger.error(
-        "Unhandled exception while processing update",
+        "Unhandled exception:",
         exc_info=context.error,
     )
-# =========================================================
-# REGISTER HANDLERS
-# =========================================================
-def register_handlers(
-    application: Application
-):
-    # -----------------------------------------------------
-    # COMMANDS
-    # -----------------------------------------------------
+# ============================================================
+# APPLICATION
+# ============================================================
+def build_application():
+    application = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .build()
+    )
+    # --------------------------------------------------------
+    # COMMAND
+    # --------------------------------------------------------
     application.add_handler(
         CommandHandler(
             "start",
             start,
         )
     )
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     # HOME
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             home_callback,
             pattern=r"^home$",
         )
     )
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     # MAIN SECTIONS
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             section_callback,
-            pattern=r"^(management|trade|marketing|economy)$",
-        )
-    )
-    # -----------------------------------------------------
-    # EXAMS
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            exams_callback,
-            pattern=r"^exam$|^exams$",
-        )
-    )
-    # -----------------------------------------------------
-    # BANKING
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            banking_callback,
-            pattern=r"^banking$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            banking_lesson_callback,
             pattern=(
-                r"^banking_"
-                r"(intro|basics|deposits|facilities|"
-                r"contracts|laws|checks|aml|credit|"
-                r"electronic|risk|central|islamic)$"
+                r"^(management|trade|marketing|"
+                r"economy|banking|employment|exam)$"
             ),
+        )
+    )
+    # --------------------------------------------------------
+    # LESSONS
+    # --------------------------------------------------------
+    lesson_pattern = (
+        r"^(banking_intro|"
+        r"banking_basics|"
+        r"banking_deposits|"
+        r"banking_facilities|"
+        r"banking_contracts|"
+        r"banking_laws|"
+        r"banking_checks|"
+        r"banking_aml|"
+        r"banking_credit|"
+        r"banking_electronic|"
+        r"banking_risk|"
+        r"banking_central|"
+        r"banking_islamic|"
+        r"management_definition|"
+        r"management_functions|"
+        r"management_levels|"
+        r"management_roles|"
+        r"management_skills|"
+        r"management_schools|"
+        r"efficiency_effectiveness|"
+        r"trade_basics|"
+        r"trade_documents|"
+        r"trade_logistics|"
+        r"trade_payment|"
+        r"trade_incoterms|"
+        r"trade_laws|"
+        r"marketing_basics|"
+        r"consumer_behavior|"
+        r"market_research|"
+        r"marketing_4p|"
+        r"marketing_stp|"
+        r"marketing_branding|"
+        r"sales_negotiation|"
+        r"economy_basics|"
+        r"supply_demand|"
+        r"inflation|"
+        r"exchange_rate|"
+        r"monetary_policy|"
+        r"fiscal_policy|"
+        r"macroeconomics|"
+        r"microeconomics|"
+        r"capital_market)$"
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            lesson_callback,
+            pattern=lesson_pattern,
+        )
+    )
+    # --------------------------------------------------------
+    # BANKING QUIZ
+    # --------------------------------------------------------
+    application.add_handler(
+        CallbackQueryHandler(
+            banking_quiz_callback,
+            pattern=r"^banking_quiz$",
         )
     )
     application.add_handler(
         CallbackQueryHandler(
             banking_quiz_start,
-            pattern=r"^banking_quiz$",
+            pattern=r"^banking_quiz_start$",
         )
     )
-    # -----------------------------------------------------
-    # MANAGEMENT
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # SOCIAL
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
-            management_basics_callback,
-            pattern=r"^management_basics$",
+            social_callback,
+            pattern=r"^social$",
         )
     )
+    # --------------------------------------------------------
+    # FILES
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
-            management_lesson_callback,
-            pattern=(
-                r"^(management_definition|"
-                r"management_functions|"
-                r"management_levels|"
-                r"management_roles|"
-                r"management_skills|"
-                r"efficiency_effectiveness|"
-                r"management_schools)$"
-            ),
+            files_callback,
+            pattern=r"^files$",
         )
     )
-    # -----------------------------------------------------
-    # TRADE
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            trade_lesson_callback,
-            pattern=(
-                r"^(trade_basics|"
-                r"trade_documents|"
-                r"trade_logistics|"
-                r"trade_payment|"
-                r"trade_incoterms|"
-                r"trade_laws)$"
-            ),
-        )
-    )
-    # -----------------------------------------------------
-    # MARKETING
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            marketing_lesson_callback,
-            pattern=(
-                r"^(marketing_basics|"
-                r"consumer_behavior|"
-                r"market_research|"
-                r"marketing_4p|"
-                r"marketing_stp|"
-                r"marketing_branding|"
-                r"sales_negotiation|"
-                r"sales_funnel|"
-                r"digital_marketing)$"
-            ),
-        )
-    )
-    # -----------------------------------------------------
-    # ECONOMY
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            economy_lesson_callback,
-            pattern=(
-                r"^(economy_basics|"
-                r"supply_demand|"
-                r"inflation|"
-                r"exchange_rate|"
-                r"monetary_policy|"
-                r"fiscal_policy|"
-                r"macroeconomics|"
-                r"microeconomics|"
-                r"capital_market)$"
-            ),
-        )
-    )
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     # EMPLOYMENT
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
             employment_callback,
             pattern=r"^employment$",
         )
     )
+    # --------------------------------------------------------
+    # UNKNOWN
+    # --------------------------------------------------------
     application.add_handler(
         CallbackQueryHandler(
-            employment_banks_callback,
-            pattern=r"^employment_banks$",
+            unknown_callback,
         )
     )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_general_callback,
-            pattern=r"^employment_general$|^employment_general_subjects$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_specialized_callback,
-            pattern=r"^employment_specialized$|^employment_specialized_subjects$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_iq_callback,
-            pattern=r"^employment_iq$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_english_callback,
-            pattern=r"^employment_english$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_it_callback,
-            pattern=r"^employment_it$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_roadmap_callback,
-            pattern=r"^employment_roadmap$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_interview_callback,
-            pattern=r"^employment_interview$",
-        )
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            employment_bank_callback,
-            pattern=r"^employment_bank_.+$",
-        )
-    )
-    # -----------------------------------------------------
-    # SOCIAL
-    # -----------------------------------------------------
-    application.add_handler(
-        CallbackQueryHandler(
-            social_handler,
-            pattern=r"^social$",
-        )
-    )
-# =========================================================
-# MAIN
-# =========================================================
-def main():
-    application = (
-        Application.builder()
-        .token(BOT_TOKEN)
-        .build()
-    )
-    register_handlers(
-        application
-    )
+    # --------------------------------------------------------
+    # ERRORS
+    # --------------------------------------------------------
     application.add_error_handler(
         error_handler
     )
+    return application
+# ============================================================
+# MAIN
+# ============================================================
+def main():
     logger.info(
-        "🏛️ Andishkadeh Market Bot started."
+        "🏛️ Andishkadeh Market Bot is starting..."
     )
-    print(
-        "🏛️ Andishkadeh Market Bot is running..."
+    application = build_application()
+    logger.info(
+        "✅ Application created successfully."
+    )
+    logger.info(
+        "🚀 Bot is running."
     )
     application.run_polling(
         allowed_updates=Update.ALL_TYPES,
         drop_pending_updates=True,
     )
-# =========================================================
+# ============================================================
 # ENTRY POINT
-# =========================================================
+# ============================================================
 if __name__ == "__main__":
     main()
