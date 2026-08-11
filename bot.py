@@ -23,8 +23,11 @@ from banking import (
     banking_risk_text,
     banking_central_text,
     banking_islamic_text,
-    banking_quiz_question,
     BANKING_QUESTIONS,
+    banking_quiz_menu,
+    banking_quiz_text,
+    banking_full_exam_menu,
+    banking_full_exam_text,
 )
 
 # =========================================================
@@ -110,15 +113,9 @@ from employment import (
     employment_interview_text,
     employment_iq_text,
     employment_english_text,
+    employment_it_text,
     employment_full_exam_text,
     employment_back_menu,
-    employment_it_text,
-    EMPLOYMENT_QUESTIONS,
-    employment_exam_menu,
-    employment_exam_intro_text,
-    employment_exam_start,
-    employment_exam_question,
-    employment_exam_answer,
 )
 
 # =========================================================
@@ -324,6 +321,19 @@ async def exams_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 # BANKING
 # =========================================================
+def banking_quiz_question(index=0, score=0):
+    if not BANKING_QUESTIONS:
+        return ("⚠️ فعلاً سؤال بانکی در دسترس نیست.", banking_back_menu())
+    index = max(0, min(index, len(BANKING_QUESTIONS)-1))
+    q = BANKING_QUESTIONS[index]
+    keyboard = []
+    for i, option in enumerate(q["options"]):
+        keyboard.append([InlineKeyboardButton(f"{chr(65+i)}) {option}", callback_data=f"banking_answer_{index}_{i}_{score}")])
+    keyboard.append([InlineKeyboardButton("❌ خروج از آزمون", callback_data="banking")])
+    text = f"📝 آزمون تخصصی بانکداری\n━━━━━━━━━━━━━━━━━━\nسؤال {index+1} از {len(BANKING_QUESTIONS)}\n\n{q['question']}\n\n👇 گزینه صحیح را انتخاب کنید:"
+    return text, InlineKeyboardMarkup(keyboard)
+
+
 async def banking_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -446,6 +456,14 @@ async def banking_answer_callback(update: Update, context: ContextTypes.DEFAULT_
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
+
+
+async def banking_full_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query=update.callback_query; await query.answer()
+    await query.edit_message_text(banking_full_exam_text(), reply_markup=banking_full_exam_menu())
+
+async def banking_quiz_variant_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await banking_quiz_start(update, context)
 
 
 # =========================================================
@@ -805,9 +823,11 @@ BANK_NAMES = {
 async def employment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    rows = [row[:] for row in employment_menu().inline_keyboard]
+    rows.insert(-1, [InlineKeyboardButton("📝 شروع آزمون استخدامی", callback_data="employment_exam")])
     await query.edit_message_text(
         employment_banks_text(),
-        reply_markup=employment_menu(),
+        reply_markup=InlineKeyboardMarkup(rows),
     )
 
 
@@ -836,64 +856,109 @@ async def employment_simple_callback(update: Update, context: ContextTypes.DEFAU
         "employment_it": ("💻 فناوری اطلاعات", employment_it_text()),
         "employment_full_exam": ("🏆 آزمون جامع استخدامی", employment_full_exam_text()),
         "employment_interview": ("🎤 آمادگی مصاحبه استخدامی", employment_interview_text()),
+        "employment_roadmap": ("🎯 مسیر پیشنهادی مطالعه", "🎯 <b>مسیر پیشنهادی آمادگی استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n1️⃣ پایه‌های عمومی و تخصصی\n2️⃣ مطالعه درسنامه\n3️⃣ تست موضوعی\n4️⃣ آزمون زمان‌دار\n5️⃣ تحلیل اشتباهات\n6️⃣ آزمون جامع و مرور نهایی"),
     }
 
     if query.data not in pages:
         return
 
     _, text = pages[query.data]
-    await query.edit_message_text(text, reply_markup=employment_back_menu())
+    if query.data in {"employment_iq", "employment_english", "employment_full_exam"}:
+        start_cb = {
+            "employment_iq": "employment_iq_exam",
+            "employment_english": "employment_english_exam",
+            "employment_full_exam": "employment_full_exam_start",
+        }[query.data]
+        label = {
+            "employment_iq": "🧠 شروع آزمون هوش",
+            "employment_english": "🇬🇧 شروع آزمون زبان",
+            "employment_full_exam": "🏆 شروع آزمون جامع",
+        }[query.data]
+        keyboard = [[InlineKeyboardButton(label, callback_data=start_cb)], [InlineKeyboardButton("🔙 مرکز استخدامی", callback_data="employment")], [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")]]
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+    else:
+        await query.edit_message_text(text, reply_markup=employment_back_menu())
 
 
+
+EMPLOYMENT_IQ_QUESTIONS = [
+    {"question": "عدد بعدی دنباله ۲، ۴، ۸، ۱۶، ؟ کدام است؟", "options": ["۲۰", "۲۴", "۳۲", "۳۶"], "correct": 2},
+    {"question": "اگر همه کارکنان بانک آموزش‌دیده باشند و علی کارمند بانک باشد، کدام نتیجه درست است؟", "options": ["علی آموزش‌دیده است", "علی مدیر بانک است", "همه مدیران علی هستند", "هیچ نتیجه‌ای ممکن نیست"], "correct": 0},
+    {"question": "کدام گزینه با بقیه متفاوت است؟", "options": ["۲", "۴", "۸", "۱۵"], "correct": 3},
+    {"question": "عدد گمشده را پیدا کنید: ۳، ۶، ۱۲، ۲۴، ؟", "options": ["۳۰", "۳۶", "۴۸", "۶۰"], "correct": 2},
+]
+EMPLOYMENT_ENGLISH_QUESTIONS = [
+    {"question": "Choose the correct option: She ___ to work every day.", "options": ["go", "goes", "going", "gone"], "correct": 1},
+    {"question": "The opposite of 'increase' is:", "options": ["improve", "decrease", "develop", "expand"], "correct": 1},
+    {"question": "Choose the correct option: They ___ the report yesterday.", "options": ["complete", "completed", "completing", "have complete"], "correct": 1},
+    {"question": "The word 'customer' means:", "options": ["مشتری", "کارمند", "مدیر", "فروشنده"], "correct": 0},
+]
+
+def _employment_start(update_user_data, kind, count):
+    import random
+    banks = list(BANKING_QUESTIONS)
+    pool = (banks[:5] + EMPLOYMENT_IQ_QUESTIONS + EMPLOYMENT_ENGLISH_QUESTIONS)
+    if kind == "iq": pool = EMPLOYMENT_IQ_QUESTIONS[:]
+    elif kind == "english": pool = EMPLOYMENT_ENGLISH_QUESTIONS[:]
+    elif kind == "full": pool = pool
+    if not pool: return
+    random.shuffle(pool)
+    if count == "random": count = min(10, len(pool))
+    count = min(int(count), len(pool))
+    update_user_data["employment_exam"] = {"questions": pool[:count], "index": 0, "score": 0, "kind": kind}
+
+def _employment_question(user_data):
+    sess=user_data.get("employment_exam")
+    if not sess: return None, None
+    q=sess["questions"][sess["index"]]
+    kb=[[InlineKeyboardButton(f"{chr(65+i)}) {o}", callback_data=f"employment_answer_{sess['index']}_{i}")] for i,o in enumerate(q["options"])]
+    kb.append([InlineKeyboardButton("❌ خروج از آزمون", callback_data="employment")])
+    text=f"🎯 آزمون استخدامی\n━━━━━━━━━━━━━━━━━━\nسؤال {sess['index']+1} از {len(sess['questions'])}\n\n{q['question']}\n\n👇 گزینه صحیح را انتخاب کنید:"
+    return text, InlineKeyboardMarkup(kb)
 
 async def employment_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        employment_exam_intro_text(),
-        reply_markup=employment_exam_menu(),
-    )
-
+    query=update.callback_query; await query.answer()
+    if query.data == "employment_iq_exam":
+        _employment_start(context.user_data, "iq", 5)
+        text,kb=_employment_question(context.user_data)
+        await query.edit_message_text(text, reply_markup=kb); return
+    if query.data == "employment_english_exam":
+        _employment_start(context.user_data, "english", 5)
+        text,kb=_employment_question(context.user_data)
+        await query.edit_message_text(text, reply_markup=kb); return
+    if query.data == "employment_full_exam_start":
+        _employment_start(context.user_data, "full", 10)
+        text,kb=_employment_question(context.user_data)
+        await query.edit_message_text(text, reply_markup=kb); return
+    kb=[[InlineKeyboardButton("5️⃣ آزمون ۵ سؤالی", callback_data="employment_count_5")], [InlineKeyboardButton("🔟 آزمون ۱۰ سؤالی", callback_data="employment_count_10")], [InlineKeyboardButton("1️⃣5️⃣ آزمون ۱۵ سؤالی", callback_data="employment_count_15")], [InlineKeyboardButton("🎲 آزمون تصادفی", callback_data="employment_count_random")], [InlineKeyboardButton("🔙 مرکز استخدامی", callback_data="employment")]]
+    await query.edit_message_text("📝 <b>مرکز آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n🏦 بانکداری\n💰 اقتصاد\n📊 مدیریت\n🧾 حسابداری\n🧠 هوش و استعداد\n🇬🇧 زبان\n💻 فناوری اطلاعات\n\nتعداد سؤال را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(kb), parse_mode="HTML")
 
 async def employment_exam_count_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    try:
-        count = query.data.rsplit("_", 1)[1]
-        count = "random" if count == "random" else int(count)
-    except (ValueError, IndexError):
-        count = 10
-
-    employment_exam_start(query.from_user.id, count=count)
-    text, keyboard = employment_exam_question(query.from_user.id)
-    await query.edit_message_text(text, reply_markup=keyboard)
-
+    query=update.callback_query; await query.answer()
+    count=query.data.rsplit("_",1)[1]
+    _employment_start(context.user_data, "full", count)
+    text,kb=_employment_question(context.user_data)
+    await query.edit_message_text(text, reply_markup=kb)
 
 async def employment_exam_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    try:
-        selected = int(query.data.rsplit("_", 1)[1])
-    except (ValueError, IndexError):
-        await query.edit_message_text(
-            "❌ پاسخ قابل پردازش نیست.",
-            reply_markup=employment_exam_menu(),
-        )
-        return
-
-    result = employment_exam_answer(query.from_user.id, selected)
-
-    if result is None:
-        await query.edit_message_text(
-            "⚠️ آزمون فعال پیدا نشد. لطفاً آزمون را دوباره شروع کنید.",
-            reply_markup=employment_exam_menu(),
-        )
-        return
-
-    text, keyboard = result
-    await query.edit_message_text(text, reply_markup=keyboard)
+    query=update.callback_query; await query.answer()
+    sess=context.user_data.get("employment_exam")
+    if not sess:
+        await query.edit_message_text("⚠️ آزمون فعال نیست. دوباره شروع کنید.", reply_markup=employment_back_menu()); return
+    try: selected=int(query.data.rsplit("_",1)[1])
+    except: await query.edit_message_text("❌ پاسخ نامعتبر است.", reply_markup=employment_back_menu()); return
+    q=sess["questions"][sess["index"]]
+    if selected==q["correct"]: sess["score"]+=1; result="✅ پاسخ صحیح است."
+    else: result=f"❌ پاسخ اشتباه است.\n✅ پاسخ صحیح: {q['options'][q['correct']]}"
+    sess["index"]+=1
+    if sess["index"]>=len(sess["questions"]):
+        total=len(sess["questions"]); score=sess["score"]; pct=round(score*100/total) if total else 0
+        level="🔥 عالی" if pct>=90 else "⭐ خوب" if pct>=70 else "👍 متوسط" if pct>=50 else "📚 نیازمند مرور"
+        context.user_data.pop("employment_exam",None)
+        kb=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 آزمون مجدد", callback_data="employment_exam")],[InlineKeyboardButton("🎯 استخدامی", callback_data="employment")],[InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")]])
+        await query.edit_message_text(f"🏆 <b>نتیجه آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n⭐ امتیاز: {score} از {total}\n📊 درصد: {pct}٪\n🎯 سطح: {level}\n━━━━━━━━━━━━━━━━━━\n{result}", reply_markup=kb, parse_mode="HTML"); return
+    text,kb=_employment_question(context.user_data)
+    await query.edit_message_text(f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}", reply_markup=kb)
 
 
 async def employment_bank_placeholder_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -978,6 +1043,8 @@ def register_handlers(application):
         )
     )
     application.add_handler(CallbackQueryHandler(banking_quiz_start, pattern=r"^banking_quiz$"))
+    application.add_handler(CallbackQueryHandler(banking_quiz_variant_callback, pattern=r"^banking_quiz_(easy|medium|hard|random)$"))
+    application.add_handler(CallbackQueryHandler(banking_full_exam_callback, pattern=r"^(banking_full_exam|exam_banking_full)$"))
     application.add_handler(
         CallbackQueryHandler(
             banking_answer_callback,
@@ -1069,7 +1136,7 @@ def register_handlers(application):
     application.add_handler(
         CallbackQueryHandler(
             employment_simple_callback,
-            pattern=r"^(employment_subjects|employment_iq|employment_english|employment_it|employment_full_exam|employment_interview)$",
+            pattern=r"^(employment_subjects|employment_iq|employment_english|employment_it|employment_full_exam|employment_interview|employment_roadmap)$",
         )
     )
     application.add_handler(
@@ -1083,7 +1150,7 @@ def register_handlers(application):
     application.add_handler(
         CallbackQueryHandler(
             employment_exam_callback,
-            pattern=r"^employment_exam$",
+            pattern=r"^employment_exam$|^employment_iq_exam$|^employment_english_exam$|^employment_full_exam_start$",
         )
     )
     application.add_handler(
