@@ -1,34 +1,62 @@
 # bot.py
+import logging
 import os
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 # =========================================================
 # IMPORT BANKING
 # =========================================================
-from banking import (
-    banking_menu,
-    banking_back_menu,
-    banking_intro_text,
-    banking_basics_text,
-    banking_deposits_text,
-    banking_facilities_text,
-    banking_contracts_text,
-    banking_laws_text,
-    banking_checks_text,
-    banking_aml_text,
-    banking_credit_text,
-    banking_electronic_text,
-    banking_risk_text,
-    banking_central_text,
-    banking_islamic_text,
-    BANKING_QUESTIONS,
-    banking_quiz_menu,
-    banking_quiz_text,
-    banking_full_exam_menu,
-    banking_full_exam_text,
-)
+# اگر banking.py نسخه قدیمی باشد، نسخه banking_fixed.py استفاده می‌شود.
+try:
+    from banking import (
+        banking_menu,
+        banking_back_menu,
+        banking_intro_text,
+        banking_basics_text,
+        banking_deposits_text,
+        banking_facilities_text,
+        banking_contracts_text,
+        banking_laws_text,
+        banking_checks_text,
+        banking_aml_text,
+        banking_credit_text,
+        banking_electronic_text,
+        banking_risk_text,
+        banking_central_text,
+        banking_islamic_text,
+        BANKING_QUESTIONS,
+        banking_quiz_menu,
+        banking_quiz_text,
+        banking_full_exam_menu,
+        banking_full_exam_text,
+    )
+except ImportError:
+    from banking_fixed import (
+        banking_menu,
+        banking_back_menu,
+        banking_intro_text,
+        banking_basics_text,
+        banking_deposits_text,
+        banking_facilities_text,
+        banking_contracts_text,
+        banking_laws_text,
+        banking_checks_text,
+        banking_aml_text,
+        banking_credit_text,
+        banking_electronic_text,
+        banking_risk_text,
+        banking_central_text,
+        banking_islamic_text,
+        BANKING_QUESTIONS,
+        banking_quiz_menu,
+        banking_quiz_text,
+        banking_full_exam_menu,
+        banking_full_exam_text,
+        banking_quiz_question,
+    )
 
 # =========================================================
 # IMPORT MANAGEMENT
@@ -142,6 +170,99 @@ if not TOKEN:
 
 
 # =========================================================
+# LOGGING / SAFE TELEGRAM HELPERS
+# =========================================================
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger("andishkadeh-bot")
+
+
+async def safe_answer(query, **kwargs):
+    """
+    پاسخ امن به CallbackQuery.
+    خطای معروف:
+    telegram.error.BadRequest:
+    Query is too old and response timeout expired or query id is invalid
+    باعث از کار افتادن کل هندلر نمی‌شود.
+    """
+    if not query:
+        return False
+
+    try:
+        await query.answer(**kwargs)
+        return True
+    except BadRequest as exc:
+        message = str(exc).lower()
+        if (
+            "query is too old" in message
+            or "query id is invalid" in message
+            or "response timeout expired" in message
+        ):
+            logger.warning("Stale/invalid callback query ignored: %s", exc)
+            return False
+
+        logger.warning("Callback answer failed: %s", exc)
+        return False
+    except Exception:
+        logger.exception("Unexpected error while answering callback query")
+        return False
+
+
+async def safe_edit(query, text, **kwargs):
+    """
+    ویرایش امن پیام.
+    خطای Message is not modified یا Query قدیمی نباید ربات را متوقف کند.
+    """
+    if not query:
+        return False
+
+    try:
+        await safe_edit(query, text=text, **kwargs)
+        return True
+    except BadRequest as exc:
+        message = str(exc).lower()
+
+        if "message is not modified" in message:
+            return True
+
+        if (
+            "query is too old" in message
+            or "query id is invalid" in message
+            or "response timeout expired" in message
+        ):
+            logger.warning("Stale callback while editing message: %s", exc)
+            return False
+
+        logger.warning("Telegram BadRequest while editing message: %s", exc)
+        return False
+    except Exception:
+        logger.exception("Unexpected error while editing Telegram message")
+        return False
+
+
+async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Error handler سراسری تا یک callback خراب باعث توقف ربات نشود.
+    """
+    error = context.error
+
+    if isinstance(error, BadRequest):
+        message = str(error).lower()
+        if (
+            "query is too old" in message
+            or "query id is invalid" in message
+            or "response timeout expired" in message
+            or "message is not modified" in message
+        ):
+            logger.warning("Handled Telegram BadRequest: %s", error)
+            return
+
+    logger.exception("Unhandled exception while processing update", exc_info=error)
+
+
+# =========================================================
 # MAIN MENU
 # =========================================================
 def main_menu():
@@ -226,8 +347,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def home_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
+    await safe_answer(query)
+    await safe_edit(query, 
         main_menu_text(),
         reply_markup=main_menu(),
     )
@@ -238,7 +359,7 @@ async def home_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 async def section_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     sections = {
         "management": (
@@ -267,7 +388,7 @@ async def section_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text, keyboard = sections[query.data]
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 # =========================================================
@@ -314,8 +435,8 @@ def exams_text():
 
 async def exams_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(exams_text(), reply_markup=exams_menu())
+    await safe_answer(query)
+    await safe_edit(query, exams_text(), reply_markup=exams_menu())
 
 
 # =========================================================
@@ -336,8 +457,8 @@ def banking_quiz_question(index=0, score=0):
 
 async def banking_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
+    await safe_answer(query)
+    await safe_edit(query, 
         banking_intro_text(),
         reply_markup=banking_menu(),
     )
@@ -361,11 +482,11 @@ BANKING_LESSONS = {
 
 async def banking_lesson_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     lesson_function = BANKING_LESSONS.get(query.data)
     if not lesson_function:
         return
-    await query.edit_message_text(
+    await safe_edit(query, 
         lesson_function(),
         reply_markup=banking_back_menu(),
     )
@@ -373,14 +494,14 @@ async def banking_lesson_callback(update: Update, context: ContextTypes.DEFAULT_
 
 async def banking_quiz_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     text, keyboard = banking_quiz_question(index=0, score=0)
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 async def banking_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     try:
         parts = query.data.split("_")
@@ -388,20 +509,29 @@ async def banking_answer_callback(update: Update, context: ContextTypes.DEFAULT_
         selected_answer = int(parts[3])
         score = int(parts[4])
     except (ValueError, IndexError):
-        await query.edit_message_text(
+        await safe_edit(query, 
             "❌ خطایی در پردازش پاسخ رخ داد.",
             reply_markup=banking_back_menu(),
         )
         return
 
-    if question_index >= len(BANKING_QUESTIONS):
-        await query.edit_message_text(
+    if question_index < 0 or question_index >= len(BANKING_QUESTIONS):
+        await safe_edit(query, 
             "❌ سؤال موردنظر پیدا نشد.",
             reply_markup=banking_back_menu(),
         )
         return
 
     question = BANKING_QUESTIONS[question_index]
+    options = question.get("options", [])
+
+    if selected_answer < 0 or selected_answer >= len(options):
+        await safe_edit(
+            query,
+            "❌ گزینه انتخاب‌شده معتبر نیست.",
+            reply_markup=banking_back_menu(),
+        )
+        return
 
     if selected_answer == question["correct"]:
         score += 1
@@ -431,7 +561,7 @@ async def banking_answer_callback(update: Update, context: ContextTypes.DEFAULT_
             [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
         ]
 
-        await query.edit_message_text(
+        await safe_edit(query, 
             f"""
 🏆 آزمون تخصصی بانکداری به پایان رسید!
 ━━━━━━━━━━━━━━━━━━
@@ -452,17 +582,32 @@ async def banking_answer_callback(update: Update, context: ContextTypes.DEFAULT_
         index=next_question,
         score=score,
     )
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
 
 
 async def banking_full_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query=update.callback_query; await query.answer()
-    await query.edit_message_text(banking_full_exam_text(), reply_markup=banking_full_exam_menu())
+    query = update.callback_query
+    await safe_answer(query)
+
+    # ورود از منوی مرکزی آزمون‌ها
+    if query.data == "exam_banking":
+        await safe_edit(
+            query,
+            banking_full_exam_text(),
+            reply_markup=banking_full_exam_menu(),
+        )
+        return
+
+    # دکمه «شروع آزمون جامع» واقعاً آزمون را شروع می‌کند.
+    await banking_quiz_start(update, context)
+
 
 async def banking_quiz_variant_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # فعلاً همه سطوح از همان بانک سؤال استفاده می‌کنند.
+    # ساختار callback حفظ شده تا بعداً سطح‌بندی سؤال‌ها اضافه شود.
     await banking_quiz_start(update, context)
 
 
@@ -482,8 +627,8 @@ MANAGEMENT_LESSONS = {
 
 async def management_basics_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
+    await safe_answer(query)
+    await safe_edit(query, 
         "📚 مبانی مدیریت\n━━━━━━━━━━━━━━━━━━\nدرسنامه‌ها و آزمون مبانی مدیریت:",
         reply_markup=management_basics_menu(),
     )
@@ -491,7 +636,7 @@ async def management_basics_callback(update: Update, context: ContextTypes.DEFAU
 
 async def management_lesson_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     func = MANAGEMENT_LESSONS.get(query.data)
     if not func:
@@ -503,19 +648,19 @@ async def management_lesson_callback(update: Update, context: ContextTypes.DEFAU
         else lesson_menu()
     )
 
-    await query.edit_message_text(func(), reply_markup=keyboard)
+    await safe_edit(query, func(), reply_markup=keyboard)
 
 
 async def management_exam_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     text, keyboard = management_exam_question(index=0, score=0)
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 async def management_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     try:
         _, _, index, selected, score = query.data.split("_")
@@ -523,7 +668,15 @@ async def management_answer_callback(update: Update, context: ContextTypes.DEFAU
         selected = int(selected)
         score = int(score)
     except (ValueError, IndexError):
-        await query.edit_message_text("❌ خطا در پردازش پاسخ.", reply_markup=management_basics_menu())
+        await safe_edit(query, "❌ خطا در پردازش پاسخ.", reply_markup=management_basics_menu())
+        return
+
+    if index < 0 or index >= len(MANAGEMENT_QUESTIONS):
+        await safe_edit(
+            query,
+            "❌ سؤال موردنظر پیدا نشد.",
+            reply_markup=management_basics_menu(),
+        )
         return
 
     question = MANAGEMENT_QUESTIONS[index]
@@ -546,7 +699,7 @@ async def management_answer_callback(update: Update, context: ContextTypes.DEFAU
             [InlineKeyboardButton("📚 مبانی مدیریت", callback_data="management_basics")],
             [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
         ]
-        await query.edit_message_text(
+        await safe_edit(query, 
             f"""
 🏆 آزمون مبانی مدیریت به پایان رسید!
 ━━━━━━━━━━━━━━━━━━
@@ -560,7 +713,7 @@ async def management_answer_callback(update: Update, context: ContextTypes.DEFAU
         return
 
     text, keyboard = management_exam_question(index=next_index, score=score)
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
@@ -581,33 +734,41 @@ TRADE_LESSONS = {
 
 async def trade_lesson_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     func = TRADE_LESSONS.get(query.data)
     if not func:
         return
 
-    await query.edit_message_text(func(), reply_markup=trade_menu())
+    await safe_edit(query, func(), reply_markup=trade_menu())
 
 
 async def trade_exam_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     text, keyboard = trade_exam_question(index=0, score=0)
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 async def trade_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     try:
-        _, _, _, index, selected, score = query.data.split("_")
+        _, _, index, selected, score = query.data.split("_")
         index = int(index)
         selected = int(selected)
         score = int(score)
     except (ValueError, IndexError):
-        await query.edit_message_text("❌ خطا در پردازش پاسخ.", reply_markup=trade_menu())
+        await safe_edit(query, "❌ خطا در پردازش پاسخ.", reply_markup=trade_menu())
+        return
+
+    if index < 0 or index >= len(TRADE_QUESTIONS):
+        await safe_edit(
+            query,
+            "❌ سؤال موردنظر پیدا نشد.",
+            reply_markup=trade_menu(),
+        )
         return
 
     question = TRADE_QUESTIONS[index]
@@ -626,7 +787,7 @@ async def trade_answer_callback(update: Update, context: ContextTypes.DEFAULT_TY
             [InlineKeyboardButton("🌍 تجارت بین‌الملل", callback_data="trade")],
             [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
         ]
-        await query.edit_message_text(
+        await safe_edit(query, 
             f"🏆 آزمون تجارت بین‌الملل به پایان رسید!\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"⭐ امتیاز: {score} از {total}\n"
@@ -637,7 +798,7 @@ async def trade_answer_callback(update: Update, context: ContextTypes.DEFAULT_TY
         return
 
     text, keyboard = trade_exam_question(index=next_index, score=score)
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
@@ -661,33 +822,41 @@ MARKETING_LESSONS = {
 
 async def marketing_lesson_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     func = MARKETING_LESSONS.get(query.data)
     if not func:
         return
 
-    await query.edit_message_text(func(), reply_markup=marketing_menu())
+    await safe_edit(query, func(), reply_markup=marketing_menu())
 
 
 async def marketing_exam_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     text, keyboard = marketing_exam_question(index=0, score=0)
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 async def marketing_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     try:
-        _, _, _, index, selected, score = query.data.split("_")
+        _, _, index, selected, score = query.data.split("_")
         index = int(index)
         selected = int(selected)
         score = int(score)
     except (ValueError, IndexError):
-        await query.edit_message_text("❌ خطا در پردازش پاسخ.", reply_markup=marketing_menu())
+        await safe_edit(query, "❌ خطا در پردازش پاسخ.", reply_markup=marketing_menu())
+        return
+
+    if index < 0 or index >= len(MARKETING_QUESTIONS):
+        await safe_edit(
+            query,
+            "❌ سؤال موردنظر پیدا نشد.",
+            reply_markup=marketing_menu(),
+        )
         return
 
     question = MARKETING_QUESTIONS[index]
@@ -706,7 +875,7 @@ async def marketing_answer_callback(update: Update, context: ContextTypes.DEFAUL
             [InlineKeyboardButton("📈 بازاریابی و فروش", callback_data="marketing")],
             [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
         ]
-        await query.edit_message_text(
+        await safe_edit(query, 
             f"🏆 آزمون بازاریابی و فروش به پایان رسید!\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"⭐ امتیاز: {score} از {total}\n"
@@ -717,7 +886,7 @@ async def marketing_answer_callback(update: Update, context: ContextTypes.DEFAUL
         return
 
     text, keyboard = marketing_exam_question(index=next_index, score=score)
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
@@ -741,33 +910,41 @@ ECONOMY_LESSONS = {
 
 async def economy_lesson_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     func = ECONOMY_LESSONS.get(query.data)
     if not func:
         return
 
-    await query.edit_message_text(func(), reply_markup=economy_lesson_menu())
+    await safe_edit(query, func(), reply_markup=economy_lesson_menu())
 
 
 async def economy_exam_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     text, keyboard = economy_exam_question(index=0, score=0)
-    await query.edit_message_text(text, reply_markup=keyboard)
+    await safe_edit(query, text, reply_markup=keyboard)
 
 
 async def economy_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     try:
-        _, _, _, index, selected, score = query.data.split("_")
+        _, _, index, selected, score = query.data.split("_")
         index = int(index)
         selected = int(selected)
         score = int(score)
     except (ValueError, IndexError):
-        await query.edit_message_text("❌ خطا در پردازش پاسخ.", reply_markup=economy_menu())
+        await safe_edit(query, "❌ خطا در پردازش پاسخ.", reply_markup=economy_menu())
+        return
+
+    if index < 0 or index >= len(ECONOMY_QUESTIONS):
+        await safe_edit(
+            query,
+            "❌ سؤال موردنظر پیدا نشد.",
+            reply_markup=economy_menu(),
+        )
         return
 
     question = ECONOMY_QUESTIONS[index]
@@ -786,7 +963,7 @@ async def economy_answer_callback(update: Update, context: ContextTypes.DEFAULT_
             [InlineKeyboardButton("💰 اقتصاد و بازار", callback_data="economy")],
             [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
         ]
-        await query.edit_message_text(
+        await safe_edit(query, 
             f"🏆 آزمون اقتصاد و بازار به پایان رسید!\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"⭐ امتیاز: {score} از {total}\n"
@@ -797,7 +974,7 @@ async def economy_answer_callback(update: Update, context: ContextTypes.DEFAULT_
         return
 
     text, keyboard = economy_exam_question(index=next_index, score=score)
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}",
         reply_markup=keyboard,
     )
@@ -822,10 +999,10 @@ BANK_NAMES = {
 
 async def employment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     rows = [row[:] for row in employment_menu().inline_keyboard]
     rows.insert(-1, [InlineKeyboardButton("📝 شروع آزمون استخدامی", callback_data="employment_exam")])
-    await query.edit_message_text(
+    await safe_edit(query, 
         employment_banks_text(),
         reply_markup=InlineKeyboardMarkup(rows),
     )
@@ -833,13 +1010,13 @@ async def employment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def employment_bank_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     bank_name = BANK_NAMES.get(query.data)
     if not bank_name:
         return
 
-    await query.edit_message_text(
+    await safe_edit(query, 
         employment_bank_text(bank_name),
         reply_markup=employment_bank_menu(bank_name),
     )
@@ -847,7 +1024,7 @@ async def employment_bank_callback(update: Update, context: ContextTypes.DEFAULT
 
 async def employment_simple_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     pages = {
         "employment_subjects": ("📚 دروس و منابع", employment_subjects_text()),
@@ -875,9 +1052,9 @@ async def employment_simple_callback(update: Update, context: ContextTypes.DEFAU
             "employment_full_exam": "🏆 شروع آزمون جامع",
         }[query.data]
         keyboard = [[InlineKeyboardButton(label, callback_data=start_cb)], [InlineKeyboardButton("🔙 مرکز استخدامی", callback_data="employment")], [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")]]
-        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+        await safe_edit(query, text, reply_markup=InlineKeyboardMarkup(keyboard))
     else:
-        await query.edit_message_text(text, reply_markup=employment_back_menu())
+        await safe_edit(query, text, reply_markup=employment_back_menu())
 
 
 
@@ -917,36 +1094,36 @@ def _employment_question(user_data):
     return text, InlineKeyboardMarkup(kb)
 
 async def employment_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query=update.callback_query; await query.answer()
+    query=update.callback_query; await safe_answer(query)
     if query.data == "employment_iq_exam":
         _employment_start(context.user_data, "iq", 5)
         text,kb=_employment_question(context.user_data)
-        await query.edit_message_text(text, reply_markup=kb); return
+        await safe_edit(query, text, reply_markup=kb); return
     if query.data == "employment_english_exam":
         _employment_start(context.user_data, "english", 5)
         text,kb=_employment_question(context.user_data)
-        await query.edit_message_text(text, reply_markup=kb); return
+        await safe_edit(query, text, reply_markup=kb); return
     if query.data == "employment_full_exam_start":
         _employment_start(context.user_data, "full", 10)
         text,kb=_employment_question(context.user_data)
-        await query.edit_message_text(text, reply_markup=kb); return
+        await safe_edit(query, text, reply_markup=kb); return
     kb=[[InlineKeyboardButton("5️⃣ آزمون ۵ سؤالی", callback_data="employment_count_5")], [InlineKeyboardButton("🔟 آزمون ۱۰ سؤالی", callback_data="employment_count_10")], [InlineKeyboardButton("1️⃣5️⃣ آزمون ۱۵ سؤالی", callback_data="employment_count_15")], [InlineKeyboardButton("🎲 آزمون تصادفی", callback_data="employment_count_random")], [InlineKeyboardButton("🔙 مرکز استخدامی", callback_data="employment")]]
-    await query.edit_message_text("📝 <b>مرکز آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n🏦 بانکداری\n💰 اقتصاد\n📊 مدیریت\n🧾 حسابداری\n🧠 هوش و استعداد\n🇬🇧 زبان\n💻 فناوری اطلاعات\n\nتعداد سؤال را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(kb), parse_mode="HTML")
+    await safe_edit(query, "📝 <b>مرکز آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n🏦 بانکداری\n💰 اقتصاد\n📊 مدیریت\n🧾 حسابداری\n🧠 هوش و استعداد\n🇬🇧 زبان\n💻 فناوری اطلاعات\n\nتعداد سؤال را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(kb), parse_mode="HTML")
 
 async def employment_exam_count_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query=update.callback_query; await query.answer()
+    query=update.callback_query; await safe_answer(query)
     count=query.data.rsplit("_",1)[1]
     _employment_start(context.user_data, "full", count)
     text,kb=_employment_question(context.user_data)
-    await query.edit_message_text(text, reply_markup=kb)
+    await safe_edit(query, text, reply_markup=kb)
 
 async def employment_exam_answer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query=update.callback_query; await query.answer()
+    query=update.callback_query; await safe_answer(query)
     sess=context.user_data.get("employment_exam")
     if not sess:
-        await query.edit_message_text("⚠️ آزمون فعال نیست. دوباره شروع کنید.", reply_markup=employment_back_menu()); return
+        await safe_edit(query, "⚠️ آزمون فعال نیست. دوباره شروع کنید.", reply_markup=employment_back_menu()); return
     try: selected=int(query.data.rsplit("_",1)[1])
-    except: await query.edit_message_text("❌ پاسخ نامعتبر است.", reply_markup=employment_back_menu()); return
+    except: await safe_edit(query, "❌ پاسخ نامعتبر است.", reply_markup=employment_back_menu()); return
     q=sess["questions"][sess["index"]]
     if selected==q["correct"]: sess["score"]+=1; result="✅ پاسخ صحیح است."
     else: result=f"❌ پاسخ اشتباه است.\n✅ پاسخ صحیح: {q['options'][q['correct']]}"
@@ -956,14 +1133,14 @@ async def employment_exam_answer_callback(update: Update, context: ContextTypes.
         level="🔥 عالی" if pct>=90 else "⭐ خوب" if pct>=70 else "👍 متوسط" if pct>=50 else "📚 نیازمند مرور"
         context.user_data.pop("employment_exam",None)
         kb=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 آزمون مجدد", callback_data="employment_exam")],[InlineKeyboardButton("🎯 استخدامی", callback_data="employment")],[InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")]])
-        await query.edit_message_text(f"🏆 <b>نتیجه آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n⭐ امتیاز: {score} از {total}\n📊 درصد: {pct}٪\n🎯 سطح: {level}\n━━━━━━━━━━━━━━━━━━\n{result}", reply_markup=kb, parse_mode="HTML"); return
+        await safe_edit(query, f"🏆 <b>نتیجه آزمون استخدامی</b>\n━━━━━━━━━━━━━━━━━━\n⭐ امتیاز: {score} از {total}\n📊 درصد: {pct}٪\n🎯 سطح: {level}\n━━━━━━━━━━━━━━━━━━\n{result}", reply_markup=kb, parse_mode="HTML"); return
     text,kb=_employment_question(context.user_data)
-    await query.edit_message_text(f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}", reply_markup=kb)
+    await safe_edit(query, f"{result}\n━━━━━━━━━━━━━━━━━━\n{text}", reply_markup=kb)
 
 
 async def employment_bank_placeholder_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     parts = query.data.split("_", 2)
     bank_name = parts[2] if len(parts) == 3 else "بانک"
@@ -978,7 +1155,7 @@ async def employment_bank_placeholder_callback(update: Update, context: ContextT
     action = parts[1] if len(parts) > 1 else "lesson"
     label = labels.get(action, "بخش موردنظر")
 
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"""
 {label}
 ━━━━━━━━━━━━━━━━━━
@@ -994,7 +1171,7 @@ async def employment_bank_placeholder_callback(update: Update, context: ContextT
 # =========================================================
 async def future_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
 
     titles = {
         "exam_management": "📚 آزمون مدیریت",
@@ -1009,7 +1186,7 @@ async def future_exam_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🏠 منوی اصلی", callback_data="home")],
     ]
 
-    await query.edit_message_text(
+    await safe_edit(query, 
         f"""
 {title}
 ━━━━━━━━━━━━━━━━━━
@@ -1197,13 +1374,39 @@ def register_handlers(application):
         CallbackQueryHandler(social_callback, pattern=r"^social$")
     )
 
-    # Old/future exam buttons
+    # آزمون‌های تخصصی از منوی مرکزی
     application.add_handler(
         CallbackQueryHandler(
-            future_exam_callback,
-            pattern=r"^exam_(management|trade|marketing|economics)$",
+            management_exam_start,
+            pattern=r"^exam_management$",
         )
     )
+    application.add_handler(
+        CallbackQueryHandler(
+            trade_exam_start,
+            pattern=r"^exam_trade$",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            marketing_exam_start,
+            pattern=r"^exam_marketing$",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            economy_exam_start,
+            pattern=r"^exam_economics$",
+        )
+    )
+    # Banking central exam button
+    application.add_handler(
+        CallbackQueryHandler(
+            banking_full_exam_callback,
+            pattern=r"^exam_banking$",
+        )
+    )
+
 
 
 # =========================================================
@@ -1219,8 +1422,14 @@ def main():
     application.add_handler(CommandHandler("start", start))
     register_handlers(application)
 
+    # خطاهای callback و Telegram را در سطح برنامه مدیریت کن.
+    application.add_error_handler(telegram_error_handler)
+
     print("🏛️ Andishkadeh Market Bot is running...")
-    application.run_polling()
+
+    # آپدیت‌های قدیمی هنگام ری‌استارت پردازش نمی‌شوند.
+    # این کار احتمال دریافت callbackهای منقضی‌شده را کمتر می‌کند.
+    application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
